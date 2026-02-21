@@ -42,10 +42,14 @@ export default function CreditsModal({ isOpen, isMobile, onClose }) {
                                     <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">Motion</span>
                                     <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">@use-gesture</span>
                                     <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">Radix UI</span>
+                                    <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">React Router</span>
                                     <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">React Markdown</span>
                                     <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">Rehype</span>
                                     <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">Remark</span>
+                                    <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">Gray Matter</span>
                                     <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">Sharp</span>
+                                    <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">ESLint</span>
+                                    <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/80 text-xs font-medium">PostCSS</span>
                                 </div>
                             </div>
 
