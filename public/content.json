@@ -1,0 +1,48 @@
+{
+    "home": {
+        "heroText": "Welcome to my corner of the web",
+        "subtitle": "Driven by curiosity and problem-solving. Breaking systems down to understand how they work, learning something new, and sharing that knowledge to help others grow.",
+        "features": [
+            {
+                "title": "Hacking & Reverse Engineering",
+                "description": "Deconstructing systems to reveal their inner workings"
+            },
+            {
+                "title": "3D Printing & Robotics",
+                "description": "Building tangible solutions from digital blueprints"
+            },
+            {
+                "title": "Astrophotography & F1",
+                "description": "Capturing the cosmos and celebrating engineering excellence"
+            }
+        ]
+    },
+    "quotes": [
+        {
+            "quote": "The only way to do great work is to love what you do.",
+            "author": "Steve Jobs"
+        },
+        {
+            "quote": "The most dangerous vulnerability is a closed mind.",
+            "author": "Anonymous"
+        },
+        {
+            "quote": "Talk is cheap. Show me the code.",
+            "author": "Linus Torvalds"
+        }
+    ],
+    "about": {
+        "name": "Stylianos Mavromatis",
+        "title": "",
+        "bio": [
+            "Hello! I'm passionate about technology and problem-solving. I love exploring new ideas, building projects, and sharing knowledge with the community.",
+            "When I'm not coding, you can find me capturing moments through photography, diving into the latest tech trends, or working on innovative projects that push the boundaries of what's possible."
+        ],
+        "imagePath": "/vite.svg",
+        "links": {
+            "github": "https://github.com/smavromatis",
+            "linkedin": "https://linkedin.com/in/stylianos-mavromatis",
+            "resume": ""
+        }
+    }
+}
