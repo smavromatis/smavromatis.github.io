@@ -367,9 +367,6 @@ const Archive = ({ isWideView, onWideViewChange }) => {
                   {isExpanded && categoryItemsList.length > 0 && (
                     <div className="space-y-1 pl-2">
                       {(() => {
-                        const itemsNoSub = categoryItemsList.filter(i => !i.subcategory)
-                        const subcategories = [...new Set(categoryItemsList.filter(i => i.subcategory).map(i => i.subcategory))]
-
                         const renderItem = (item) => {
                           const isItemSelected = selectedItemId === item.id
                           return (
@@ -413,40 +410,65 @@ const Archive = ({ isWideView, onWideViewChange }) => {
                           )
                         }
 
-                        return (
-                          <>
-                            {itemsNoSub.map(renderItem)}
-                            {subcategories.map(subName => {
-                              const isSubExpanded = expandedSubcategories.has(subName)
-                              return (
-                                <div key={subName} className="mt-2 mb-1">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      toggleSubcategory(subName)
-                                    }}
-                                    className="w-full text-left px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/50 hover:text-white/80 flex items-center gap-2 transition-colors duration-200 outline-none rounded-md hover:bg-white/5"
-                                  >
-                                    <svg
-                                      className={`w-3 h-3 transition-transform duration-300 ${isSubExpanded ? 'rotate-90 text-white/70' : ''}`}
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
+                        // Build a recursive tree from subcategory paths
+                        const root = { items: [], children: {} }
+                        categoryItemsList.forEach(item => {
+                          if (!item.subcategory) {
+                            root.items.push(item)
+                          } else {
+                            const parts = item.subcategory.split('/')
+                            let current = root
+                            let pathSoFar = ''
+                            parts.forEach((part) => {
+                              pathSoFar = pathSoFar ? `${pathSoFar}/${part}` : part
+                              if (!current.children[part]) {
+                                current.children[part] = { path: pathSoFar, name: part, items: [], children: {} }
+                              }
+                              current = current.children[part]
+                            })
+                            current.items.push(item)
+                          }
+                        })
+
+                        // Recursive renderer for the tree
+                        const renderTree = (node, level = 0) => {
+                          return (
+                            <>
+                              {node.items.map(renderItem)}
+                              {Object.values(node.children).map(childNode => {
+                                const isSubExpanded = expandedSubcategories.has(childNode.path)
+                                return (
+                                  <div key={childNode.path} className="mt-2 mb-1">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        toggleSubcategory(childNode.path)
+                                      }}
+                                      className="w-full text-left px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/50 hover:text-white/80 flex items-center gap-2 transition-colors duration-200 outline-none rounded-md hover:bg-white/5"
                                     >
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                    {subName.split('/').pop()}
-                                  </button>
-                                  {isSubExpanded && (
-                                    <div className="space-y-1 mt-1 border-l border-white/10 ml-[22px] pl-1">
-                                      {categoryItemsList.filter(i => i.subcategory === subName).map(renderItem)}
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </>
-                        )
+                                      <svg
+                                        className={`w-3 h-3 transition-transform duration-300 ${isSubExpanded ? 'rotate-90 text-white/70' : ''}`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                      </svg>
+                                      {childNode.name}
+                                    </button>
+                                    {isSubExpanded && (
+                                      <div className={`space-y-1 mt-1 border-l border-white/10 ${level === 0 ? 'ml-[22px] pl-1' : 'ml-[11px] pl-2'}`}>
+                                        {renderTree(childNode, level + 1)}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </>
+                          )
+                        }
+
+                        return renderTree(root)
                       })()}
                     </div>
                   )}
