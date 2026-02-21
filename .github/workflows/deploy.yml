@@ -7,10 +7,6 @@ on:
 
   workflow_dispatch:
 
-  # Rebuilds the site every day at midnight UTC to pull in new CTF writeups
-  schedule:
-    - cron: '0 0 * * *'
-
   # Listens for the ping from ctf-writeups repo
   repository_dispatch:
     types: [update-ctf]
