@@ -2,22 +2,19 @@
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ['main']
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
   # Rebuilds the site every day at midnight UTC to pull in new CTF writeups
   schedule:
     - cron: '0 0 * * *'
 
-  # Listens for the ping from your ctf-writeups repo!
+  # Listens for the ping from ctf-writeups repo
   repository_dispatch:
     types: [update-ctf]
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
@@ -30,7 +27,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just building and deploying
   deploy:
     environment:
       name: github-pages
@@ -58,7 +54,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          # Upload entire repository
           path: './dist'
       - name: Deploy to GitHub Pages
         id: deployment
