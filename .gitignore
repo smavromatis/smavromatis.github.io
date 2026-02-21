@@ -25,6 +25,9 @@ dist-ssr
 public/photos/optimized/
 public/photos/manifest.json
 
+# External Architecture Directories
+public/archive/ctf-writeups/
+
 # Environment Variables
 .env
 .env.*

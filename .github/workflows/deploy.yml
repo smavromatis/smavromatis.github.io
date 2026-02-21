@@ -31,6 +31,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      - name: Checkout CTF Writeups
+        uses: actions/checkout@v5
+        with:
+          repository: smavromatis/ctf-writeups
+          path: public/archive/ctf-writeups
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
