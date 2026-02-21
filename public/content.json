@@ -25,20 +25,16 @@
         {
             "quote": "The most dangerous vulnerability is a closed mind.",
             "author": "Anonymous"
-        },
-        {
-            "quote": "Talk is cheap. Show me the code.",
-            "author": "Linus Torvalds"
         }
     ],
     "about": {
         "name": "Stylianos Mavromatis",
         "title": "",
         "bio": [
-            "Hello! I'm passionate about technology and problem-solving. I love exploring new ideas, building projects, and sharing knowledge with the community.",
-            "When I'm not coding, you can find me capturing moments through photography, diving into the latest tech trends, or working on innovative projects that push the boundaries of what's possible."
+            "I'm driven by curiosity and a love for problem-solving, whether it's breaking systems down to understand how they work, learning something new, or sharing that knowledge to help others grow.",
+            "Let’s connect! I’m always up for an interesting conversation or a collaborative brainstorm."
         ],
-        "imagePath": "/vite.svg",
+        "imagePath": "/photo_profile.jpeg",
         "links": {
             "github": "https://github.com/smavromatis",
             "linkedin": "https://linkedin.com/in/stylianos-mavromatis",
