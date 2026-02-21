@@ -379,11 +379,11 @@ const Archive = ({ isWideView, onWideViewChange }) => {
                                   setIsSidebarOpen(false)
                                 }
                               }}
-                              className={`group w-full text-left px-3 py-2.5 rounded-full transition-all duration-300 outline-none ring-0 focus-visible:outline-none focus-visible:ring-0 touch-manipulation ${isItemSelected
+                              className={`group w-full text-left px-3 py-1.5 rounded-full transition-all duration-300 outline-none ring-0 focus-visible:outline-none focus-visible:ring-0 touch-manipulation ${isItemSelected
                                 ? 'bg-transparent text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]'
                                 : 'bg-transparent text-muted-foreground hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] active:text-white'
                                 }`}
-                              style={{ minHeight: '44px' }}
+                              style={{ minHeight: '32px' }}
                             >
                               <div className="flex items-center gap-3">
                                 {/* Thumbnail */}
