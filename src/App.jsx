@@ -49,7 +49,37 @@ const colorPalettes = [
   { name: 'Northern Whisper', colors: ['#a78bfa', '#6ee7b7', '#93c5fd'] },   // Lavender → mint → light blue
 ]
 
-function TabAwareAurora({ activeTab, colorStops }) {
+// Hardware Acceleration / Low End Device Check
+const checkIsLowEndDevice = () => {
+  if (typeof window === 'undefined') return false;
+
+  const stored = localStorage.getItem('isLowEndDevice');
+  if (stored !== null) return stored === 'true';
+
+  let isLowEnd = false;
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+    if (!gl) {
+      isLowEnd = true;
+    } else {
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      if (debugInfo) {
+        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
+        const softwareRenderers = ['swiftshader', 'llvmpipe', 'software rasterizer'];
+        isLowEnd = softwareRenderers.some(str => renderer.includes(str));
+      }
+    }
+  } catch (e) {
+    isLowEnd = true;
+  }
+
+  localStorage.setItem('isLowEndDevice', isLowEnd);
+  return isLowEnd;
+};
+
+function TabAwareAurora({ activeTab, colorStops, isLowEndDevice }) {
   const [auroraAmplitude, setAuroraAmplitude] = useState(1.0)
   const [auroraBlend, setAuroraBlend] = useState(0.5)
   const [auroraVerticalOffset, setAuroraVerticalOffset] = useState(0.0)
@@ -57,6 +87,8 @@ function TabAwareAurora({ activeTab, colorStops }) {
   const currentValuesRef = useRef({ amplitude: 1.0, blend: 0.5, verticalOffset: 0.0 })
 
   useEffect(() => {
+    if (isLowEndDevice) return; // Skip complex animation loop if low end
+
     const targetAmplitude = (activeTab === 'archive' || activeTab === 'about') ? 0.3 : 1.0
     const targetBlend = (activeTab === 'archive' || activeTab === 'about') ? 0.04 : 0.5
     const targetVerticalOffset = (activeTab === 'archive' || activeTab === 'about') ? -0.6 : 0.0
@@ -98,7 +130,22 @@ function TabAwareAurora({ activeTab, colorStops }) {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
     }
-  }, [activeTab])
+  }, [activeTab, isLowEndDevice])
+
+  // Fallback for devices without hardware acceleration
+  if (isLowEndDevice) {
+    const opacity = (activeTab === 'archive' || activeTab === 'about') ? 0.4 : 0.8;
+    return (
+      <div
+        className="w-full h-full transition-all duration-1000 ease-in-out"
+        style={{
+          background: `radial-gradient(circle at 50% 50%, ${colorStops[0]} 0%, ${colorStops[1]} 50%, ${colorStops[2]} 100%)`,
+          opacity: opacity,
+          filter: 'blur(60px)'
+        }}
+      />
+    );
+  }
 
   return (
     <Aurora
@@ -118,6 +165,8 @@ function App() {
   const textToNavSpacing = 8;          // Gap between text and nav bar (in vh units) - reduced for better mobile spacing
   // Nav bar automatically positions below text to prevent overlap on any screen size
   // ================================================
+
+  const [isLowEndDevice] = useState(checkIsLowEndDevice);
 
   // ========== THOUGHT OF THE DAY ==========
   // To update the quote, edit: /public/thoughts.txt
@@ -489,6 +538,7 @@ function App() {
           <TabAwareAurora
             activeTab={activeTab}
             colorStops={colorPalettes[selectedPaletteIndex].colors}
+            isLowEndDevice={isLowEndDevice}
           />
         </div>
 
@@ -803,7 +853,7 @@ function App() {
                         <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl'} font-bold tracking-tight text-center ${isMobile ? 'px-2' : 'px-4'}`}>
                           <DecryptedText
                             text={homeContent.heroText}
-                            speed={60}
+                            speed={30}
                             sequential={true}
                             revealDirection="start"
                             animateOn="view"
