@@ -178,10 +178,18 @@ export default function Aurora(props) {
     ctn.appendChild(gl.canvas);
 
     let animateId = 0;
-    const update = t => {
-      animateId = requestAnimationFrame(update);
-      const { time = t * 0.01, speed = 1.0 } = propsRef.current;
-      program.uniforms.uTime.value = time * speed * 0.1;
+    const update = (t) => {
+      // Loop forever ONLY if we aren't static
+      if (!propsRef.current.isStatic) {
+        animateId = requestAnimationFrame(update);
+      }
+
+      const { time = t * 0.01, speed = 1.0, isStatic } = propsRef.current;
+
+      // If static, force a specific "frozen in time" snapshot so it looks cool
+      // For instance, advancing the noise a tiny bit dynamically looks nice
+      program.uniforms.uTime.value = isStatic ? 5.0 : time * speed * 0.1;
+
       program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
       program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
       program.uniforms.uVerticalOffset.value = propsRef.current.verticalOffset ?? 0.0;
@@ -192,7 +200,13 @@ export default function Aurora(props) {
       });
       renderer.render({ scene: mesh });
     };
-    animateId = requestAnimationFrame(update);
+
+    // Kick off animation loop, or run just exactly one static frame
+    if (!propsRef.current.isStatic) {
+      animateId = requestAnimationFrame(update);
+    } else {
+      update(0);
+    }
 
     if (ctn) {
       const initWidth = ctn.offsetWidth;
@@ -201,8 +215,18 @@ export default function Aurora(props) {
       if (program) program.uniforms.uResolution.value = [initWidth, initHeight];
     }
 
+    // Since we freeze the animation frame, we must manually force a re-render
+    // whenever props (like amplitude or color) dynamically change higher up
+    let propWatcherId;
+    if (propsRef.current.isStatic) {
+      propWatcherId = setInterval(() => {
+        update(0);
+      }, 500); // Check and cheaply re-render 2 times a second if tab changes
+    }
+
     return () => {
       cancelAnimationFrame(animateId);
+      clearInterval(propWatcherId);
       window.removeEventListener('resize', resize);
       clearTimeout(resizeTimeout);
       if (ctn && gl.canvas.parentNode === ctn) {

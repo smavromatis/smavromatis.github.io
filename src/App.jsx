@@ -87,11 +87,16 @@ function TabAwareAurora({ activeTab, colorStops, isLowEndDevice }) {
   const currentValuesRef = useRef({ amplitude: 1.0, blend: 0.5, verticalOffset: 0.0 })
 
   useEffect(() => {
-    if (isLowEndDevice) return; // Skip complex animation loop if low end
-
     const targetAmplitude = (activeTab === 'archive' || activeTab === 'about') ? 0.3 : 1.0
     const targetBlend = (activeTab === 'archive' || activeTab === 'about') ? 0.04 : 0.5
     const targetVerticalOffset = (activeTab === 'archive' || activeTab === 'about') ? -0.6 : 0.0
+
+    if (isLowEndDevice) {
+      setAuroraAmplitude(targetAmplitude)
+      setAuroraBlend(targetBlend)
+      setAuroraVerticalOffset(targetVerticalOffset)
+      return
+    }
 
     if (animationRef.current) cancelAnimationFrame(animationRef.current)
 
@@ -132,27 +137,13 @@ function TabAwareAurora({ activeTab, colorStops, isLowEndDevice }) {
     }
   }, [activeTab, isLowEndDevice])
 
-  // Fallback for devices without hardware acceleration
-  if (isLowEndDevice) {
-    const opacity = (activeTab === 'archive' || activeTab === 'about') ? 0.4 : 0.8;
-    return (
-      <div
-        className="w-full h-full transition-all duration-1000 ease-in-out"
-        style={{
-          background: `radial-gradient(circle at 50% 50%, ${colorStops[0]} 0%, ${colorStops[1]} 50%, ${colorStops[2]} 100%)`,
-          opacity: opacity,
-          filter: 'blur(60px)'
-        }}
-      />
-    );
-  }
-
   return (
     <Aurora
       amplitude={auroraAmplitude}
       blend={auroraBlend}
       verticalOffset={auroraVerticalOffset}
       colorStops={colorStops}
+      isStatic={isLowEndDevice}
     />
   )
 }
