@@ -168,8 +168,8 @@ const ClickSpark = ({
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9999]"
         style={{
           display: 'block',
-          width: '100vw',
-          height: '100vh',
+          width: '100%',
+          height: '100%',
           position: 'fixed',
           top: 0,
           left: 0
