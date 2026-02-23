@@ -94,7 +94,11 @@ void main() {
   vec3 rampColor;
   COLOR_RAMP(colors, uv.x, rampColor);
   
-  float height = snoise(vec2(uv.x * 2.0 + uTime * 0.1, uTime * 0.25)) * 0.5 * uAmplitude;
+  // Calculate a proportional x frequency to prevent spikiness on narrow screens
+  float aspect = uResolution.x / uResolution.y;
+  float frequencyX = 2.0 * min(1.0, aspect);
+  
+  float height = snoise(vec2(uv.x * frequencyX + uTime * 0.1, uTime * 0.25)) * 0.5 * uAmplitude;
   height = exp(height);
   height = (uv.y * 2.0 - height + 0.2 + uVerticalOffset);
   float intensity = 0.6 * height;
