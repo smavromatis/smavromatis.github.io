@@ -161,6 +161,16 @@ const ClickSpark = ({
     };
   }, [handleClick]);
 
+  const isLowEndDevice = typeof window !== 'undefined' && localStorage.getItem('isLowEndDevice') === 'true';
+
+  if (isLowEndDevice) {
+    return (
+      <div className="relative w-full h-full">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div ref={containerRef} className="relative w-full h-full">
       <canvas

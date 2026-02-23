@@ -22,6 +22,16 @@ export default function DecryptedText({
   const [hasAnimated, setHasAnimated] = useState(false);
   const containerRef = useRef(null);
 
+  const isLowEndDevice = typeof window !== 'undefined' && localStorage.getItem('isLowEndDevice') === 'true';
+
+  if (isLowEndDevice) {
+    return (
+      <span className={`inline-block whitespace-pre-wrap ${parentClassName} ${className}`} {...props}>
+        {text}
+      </span>
+    );
+  }
+
   useEffect(() => {
     let interval;
     let currentIteration = 0;

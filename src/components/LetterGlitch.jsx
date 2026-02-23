@@ -19,9 +19,11 @@ const LetterGlitch = ({
   const timeoutsRef = useRef([]);
   const [isVisible, setIsVisible] = useState(false);
 
+  const isLowEndDevice = typeof window !== 'undefined' && localStorage.getItem('isLowEndDevice') === 'true';
+
   // Memoize character array to avoid recreation on every render
   const lettersAndSymbols = useMemo(() => Array.from(characters), [characters]);
-  
+
   // Pre-convert hex colors to RGB once to avoid repeated conversions
   const rgbColors = useMemo(() => {
     return glitchColors.map(hex => {
@@ -56,7 +58,7 @@ const LetterGlitch = ({
       b: Math.round(start.b + (end.b - start.b) * factor)
     };
   };
-  
+
   const colorToString = (color) => {
     return `rgb(${color.r}, ${color.g}, ${color.b})`;
   };
@@ -85,7 +87,7 @@ const LetterGlitch = ({
     const dpr = window.devicePixelRatio || 1;
     const width = window.innerWidth;
     const height = window.innerHeight;
-    
+
     // Cache dimensions for later use
     cachedDimensions.current = { width, height };
 
@@ -131,7 +133,7 @@ const LetterGlitch = ({
       if (!letters.current[index]) continue;
 
       letters.current[index].char = getRandomChar();
-      
+
       if (!smooth) {
         letters.current[index].color = getRandomColor();
         letters.current[index].colorProgress = 1;
@@ -161,7 +163,7 @@ const LetterGlitch = ({
 
   const animate = () => {
     if (!isMountedRef.current) return;
-    
+
     const now = Date.now();
     if (now - lastGlitchTime.current >= glitchSpeed) {
       updateLetters();
@@ -183,11 +185,11 @@ const LetterGlitch = ({
     isMountedRef.current = true;
     context.current = canvas.getContext('2d');
     if (isMountedRef.current) setIsVisible(false);
-    
+
     // Clear any existing timeouts
     timeoutsRef.current.forEach(clearTimeout);
     timeoutsRef.current = [];
-    
+
     // Optimized initialization: resize twice then start
     requestAnimationFrame(() => {
       if (!isMountedRef.current) return;
@@ -224,21 +226,21 @@ const LetterGlitch = ({
 
     return () => {
       isMountedRef.current = false;
-      
+
       // Cancel animation frame
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
-      
+
       // Clear all timeouts
       timeoutsRef.current.forEach(clearTimeout);
       timeoutsRef.current = [];
       clearTimeout(resizeTimeout);
-      
+
       // Remove event listener
       window.removeEventListener('resize', handleResize);
-      
+
       // Clear references
       letters.current = [];
       context.current = null;
@@ -246,11 +248,19 @@ const LetterGlitch = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [glitchSpeed, smooth]);
 
+  if (isLowEndDevice) {
+    return (
+      <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #0F0 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
-      <canvas 
-        ref={canvasRef} 
-        className="block" 
+      <canvas
+        ref={canvasRef}
+        className="block"
         style={{
           position: 'absolute',
           top: 0,

@@ -145,7 +145,10 @@ export default function DomeGallery({
     document.body.classList.remove('dg-scroll-lock');
   }, []);
 
-  const items = useMemo(() => buildItems(images, segments), [images, segments]);
+  const isLowEndDevice = typeof window !== 'undefined' && localStorage.getItem('isLowEndDevice') === 'true';
+  const effectiveSegments = isLowEndDevice ? Math.min(15, segments) : segments;
+
+  const items = useMemo(() => buildItems(images, effectiveSegments), [images, effectiveSegments]);
 
   const applyTransform = (xDeg, yDeg) => {
     const el = sphereRef.current;
@@ -629,7 +632,7 @@ export default function DomeGallery({
           const sizeX = getDataNumber(nextParent, 'sizeX', 2);
           const sizeY = getDataNumber(nextParent, 'sizeY', 2);
 
-          const nextRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segments);
+          const nextRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, effectiveSegments);
           const parentY = normalizeAngle(nextRot.rotateY);
           const globalY = normalizeAngle(rotationRef.current.y);
           let rotY = -(parentY + globalY) % 360;
@@ -686,7 +689,7 @@ export default function DomeGallery({
     const sizeX = getDataNumber(parent, 'sizeX', 2);
     const sizeY = getDataNumber(parent, 'sizeY', 2);
 
-    const parentRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segments);
+    const parentRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, effectiveSegments);
     const parentY = normalizeAngle(parentRot.rotateY);
     const globalY = normalizeAngle(rotationRef.current.y);
     let rotY = -(parentY + globalY) % 360;
@@ -1090,6 +1093,41 @@ export default function DomeGallery({
     }
   `;
 
+  const lowEndImages = useMemo(() => {
+    return images.map(image => {
+      if (typeof image === 'string') return { src: image, srcOriginal: image, alt: '' };
+      return { src: image.src || '', srcOriginal: image.srcOriginal || image.src || '', alt: image.alt || '' };
+    });
+  }, [images]);
+
+  if (isLowEndDevice) {
+    return (
+      <div className="w-full h-full overflow-y-auto p-4 pb-32 overscroll-contain">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 auto-rows-[160px] sm:auto-rows-[220px] max-w-[1400px] mx-auto">
+          {lowEndImages.map((img, i) => (
+            <div
+              key={i}
+              className="relative w-full h-full rounded-2xl overflow-hidden shadow-lg border border-white/10 group cursor-pointer"
+              onClick={() => {
+                const url = img.srcOriginal || img.src;
+                if (url) window.open(url, '_blank');
+              }}
+            >
+              <img
+                src={img.src}
+                className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none protect-photo ${grayscale ? 'grayscale' : ''}`}
+                alt={img.alt}
+                onContextMenu={(e) => e.preventDefault()}
+                draggable={false}
+              />
+              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors duration-500 pointer-events-none" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: cssStyles }} />
@@ -1097,8 +1135,8 @@ export default function DomeGallery({
         ref={rootRef}
         className="sphere-root relative w-full h-full"
         style={{
-          ['--segments-x']: segments,
-          ['--segments-y']: segments,
+          ['--segments-x']: effectiveSegments,
+          ['--segments-y']: effectiveSegments,
           ['--overlay-blur-color']: overlayBlurColor,
           ['--tile-radius']: imageBorderRadius,
           ['--enlarge-radius']: openedImageBorderRadius,
@@ -1174,13 +1212,15 @@ export default function DomeGallery({
               backgroundImage: `radial-gradient(rgba(235, 235, 235, 0) 65%, var(--overlay-blur-color, ${overlayBlurColor}) 100%)`
             }} />
 
-          <div
-            className="absolute inset-0 m-auto z-[3] pointer-events-none"
-            style={{
-              WebkitMaskImage: `radial-gradient(rgba(235, 235, 235, 0) 70%, var(--overlay-blur-color, ${overlayBlurColor}) 90%)`,
-              maskImage: `radial-gradient(rgba(235, 235, 235, 0) 70%, var(--overlay-blur-color, ${overlayBlurColor}) 90%)`,
-              backdropFilter: 'blur(3px)'
-            }} />
+          {!isLowEndDevice && (
+            <div
+              className="absolute inset-0 m-auto z-[3] pointer-events-none"
+              style={{
+                WebkitMaskImage: `radial-gradient(rgba(235, 235, 235, 0) 70%, var(--overlay-blur-color, ${overlayBlurColor}) 90%)`,
+                maskImage: `radial-gradient(rgba(235, 235, 235, 0) 70%, var(--overlay-blur-color, ${overlayBlurColor}) 90%)`,
+                backdropFilter: 'blur(3px)'
+              }} />
+          )}
 
           <div
             className="absolute left-0 right-0 top-0 h-[120px] z-[5] pointer-events-none rotate-180"
@@ -1201,8 +1241,8 @@ export default function DomeGallery({
               ref={scrimRef}
               className="scrim absolute inset-0 z-10 pointer-events-none opacity-0 transition-opacity duration-500"
               style={{
-                background: 'rgba(0, 0, 0, 0.4)',
-                backdropFilter: 'blur(3px)'
+                background: isLowEndDevice ? 'rgba(0, 0, 0, 0.75)' : 'rgba(0, 0, 0, 0.4)',
+                backdropFilter: isLowEndDevice ? 'none' : 'blur(3px)'
               }} />
             <div
               ref={frameRef}

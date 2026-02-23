@@ -1,5 +1,5 @@
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const VERT = `#version 300 es
 in vec2 position;
@@ -117,18 +117,28 @@ export default function Aurora(props) {
   const propsRef = useRef(props);
   propsRef.current = props;
 
+  const [webglFailed, setWebglFailed] = useState(false);
   const ctnDom = useRef(null);
 
   useEffect(() => {
     const ctn = ctnDom.current;
     if (!ctn) return;
 
-    const renderer = new Renderer({
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: true
-    });
-    const gl = renderer.gl;
+    let renderer, gl;
+    try {
+      renderer = new Renderer({
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: true
+      });
+      gl = renderer.gl;
+      if (!gl) throw new Error("No WebGL Support");
+    } catch (err) {
+      console.warn("WebGL initialization failed, falling back to CSS.", err);
+      setWebglFailed(true);
+      return;
+    }
+
     gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -187,8 +197,8 @@ export default function Aurora(props) {
       const { time = t * 0.01, speed = 1.0, isStatic } = propsRef.current;
 
       // If static, force a specific "frozen in time" snapshot so it looks cool
-      // For instance, advancing the noise a tiny bit dynamically looks nice
-      program.uniforms.uTime.value = isStatic ? 5.0 : time * speed * 0.1;
+      // Setting time to 50 instead of 5 gives it a more developed aurora wave structure
+      program.uniforms.uTime.value = isStatic ? 50.0 : time * speed * 0.1;
 
       program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
       program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
@@ -201,18 +211,20 @@ export default function Aurora(props) {
       renderer.render({ scene: mesh });
     };
 
-    // Kick off animation loop, or run just exactly one static frame
-    if (!propsRef.current.isStatic) {
-      animateId = requestAnimationFrame(update);
-    } else {
-      update(0);
-    }
-
     if (ctn) {
       const initWidth = ctn.offsetWidth;
       const initHeight = ctn.offsetHeight;
       renderer.setSize(initWidth, initHeight);
       if (program) program.uniforms.uResolution.value = [initWidth, initHeight];
+    }
+
+    // Kick off animation loop, or run just exactly one static frame
+    if (!propsRef.current.isStatic) {
+      animateId = requestAnimationFrame(update);
+    } else {
+      update(0);
+      // Run it one more time slightly after to ensure textures/shaders flushed to canvas
+      setTimeout(() => update(0), 50);
     }
 
     // Since we freeze the animation frame, we must manually force a re-render
@@ -229,13 +241,48 @@ export default function Aurora(props) {
       clearInterval(propWatcherId);
       window.removeEventListener('resize', resize);
       clearTimeout(resizeTimeout);
-      if (ctn && gl.canvas.parentNode === ctn) {
+      if (ctn && gl && gl.canvas && gl.canvas.parentNode === ctn) {
         ctn.removeChild(gl.canvas);
       }
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      if (gl) {
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (webglFailed || !props.colorStops) {
+    const opacity = props.blend < 0.1 ? 0.4 : 0.8;
+    const colors = props.colorStops || ['#5227FF', '#7cff67', '#5227FF'];
+
+    return (
+      <div className="w-full h-full relative overflow-hidden bg-[#000510]" style={{ opacity }}>
+        <div
+          className="absolute inset-0 w-[150%] h-[150%] -top-[25%] -left-[25%] transition-all duration-1000"
+          style={{
+            background: `conic-gradient(from 180deg at 50% 50%, ${colors[0]}40 0deg, ${colors[1]}80 120deg, ${colors[2]}40 240deg, ${colors[0]}40 360deg)`,
+            filter: 'blur(100px) opacity(0.8)',
+            transform: 'scale(1.2)'
+          }}
+        />
+        <div
+          className="absolute inset-x-0 bottom-[-20%] h-[70%] transition-all duration-1000"
+          style={{
+            background: `radial-gradient(ellipse at 50% 100%, ${colors[1]}60 0%, transparent 70%)`,
+            filter: 'blur(80px)'
+          }}
+        />
+        <div
+          className="absolute w-[80%] h-[40%] top-[40%] left-[10%] rotate-12 transition-all duration-1000"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, ${colors[1]}50 50%, transparent 100%)`,
+            filter: 'blur(60px)',
+            mixBlendMode: 'screen'
+          }}
+        />
+      </div>
+    );
+  }
 
   return <div ref={ctnDom} className="w-full h-full" />;
 }
