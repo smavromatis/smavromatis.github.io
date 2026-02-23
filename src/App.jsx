@@ -536,11 +536,10 @@ function App() {
         {/* Full-screen blur overlay for Archive, Photography and About tabs */}
         {(activeTab === 'archive' || activeTab === 'photography' || activeTab === 'about') && (
           <div
-            className="fixed inset-0 z-5 backdrop-blur-md bg-black/20 pointer-events-none"
+            className={`fixed inset-0 z-5 bg-black/40 pointer-events-none ${isLowEndDevice ? '' : 'backdrop-blur-md bg-black/20'}`}
             style={{
               opacity: showContent ? 1 : 0,
-              transition: 'opacity 400ms ease-in',
-              transitionDelay: showContent ? '100ms' : '0ms'
+              transition: showContent ? 'opacity 400ms ease-in 100ms' : 'opacity 400ms ease-in',
             }}
           />
         )}

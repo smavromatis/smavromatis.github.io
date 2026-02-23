@@ -24,38 +24,6 @@ export default function InfiniteGridGallery({ images = [], onInteraction }) {
 
     const isLowEndDevice = typeof window !== 'undefined' && localStorage.getItem('isLowEndDevice') === 'true';
 
-    if (isLowEndDevice) {
-        return (
-            <div className="w-full h-full overflow-y-auto p-4 pb-32 overscroll-contain">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 auto-rows-[160px] sm:auto-rows-[220px] max-w-[1400px] mx-auto">
-                    {images.map((img, i) => {
-                        const src = img.src || img;
-                        const srcOriginal = img.srcOriginal || src;
-                        const alt = img.alt || '';
-                        return (
-                            <div
-                                key={i}
-                                className="relative w-full h-full rounded-2xl overflow-hidden shadow-lg border border-white/10 group cursor-pointer"
-                                onClick={() => {
-                                    if (srcOriginal) window.open(srcOriginal, '_blank');
-                                }}
-                            >
-                                <img
-                                    src={src}
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none protect-photo"
-                                    alt={alt}
-                                    onContextMenu={(e) => e.preventDefault()}
-                                    draggable={false}
-                                />
-                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors duration-500 pointer-events-none" />
-                            </div>
-                        )
-                    })}
-                </div>
-            </div>
-        );
-    }
-
     useEffect(() => {
         if (containerRef.current) {
             setDimensions({
@@ -218,6 +186,38 @@ export default function InfiniteGridGallery({ images = [], onInteraction }) {
         }
 
         return cells
+    }
+
+    if (isLowEndDevice) {
+        return (
+            <div className="w-full h-full overflow-y-auto p-4 pb-32 overscroll-contain">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 auto-rows-[160px] sm:auto-rows-[220px] max-w-[1400px] mx-auto">
+                    {images.map((img, i) => {
+                        const src = img.src || img;
+                        const srcOriginal = img.srcOriginal || src;
+                        const alt = img.alt || '';
+                        return (
+                            <div
+                                key={i}
+                                className="relative w-full h-full rounded-2xl overflow-hidden shadow-lg border border-white/10 group cursor-pointer"
+                                onClick={() => {
+                                    if (srcOriginal) window.open(srcOriginal, '_blank');
+                                }}
+                            >
+                                <img
+                                    src={src}
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none protect-photo"
+                                    alt={alt}
+                                    onContextMenu={(e) => e.preventDefault()}
+                                    draggable={false}
+                                />
+                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors duration-500 pointer-events-none" />
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+        );
     }
 
     return (
