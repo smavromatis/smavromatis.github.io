@@ -201,11 +201,17 @@ function App() {
     return tabs.find(t => t.id === p) ? p : 'home';
   }, [location.pathname]);
 
-  const [activeTab, setActiveTab] = useState(getTabFromPath());
+  // Load saved palette preference or default to 0
+  const getInitialPalette = () => {
+    const saved = localStorage.getItem('selectedPaletteIndex')
+    return saved !== null ? parseInt(saved, 10) : 0
+  }
+
+  const [activeTab, setActiveTab] = useState(getTabFromPath())
   const [isNavExpanded, setIsNavExpanded] = useState(false)
   const [showContent, setShowContent] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
-  const [selectedPaletteIndex, setSelectedPaletteIndex] = useState(0)
+  const [selectedPaletteIndex, setSelectedPaletteIndex] = useState(getInitialPalette)
   const [isPalettePickerOpen, setIsPalettePickerOpen] = useState(false)
   const [hoveredPaletteName, setHoveredPaletteName] = useState(null)
   const [hoveredPalettePosition, setHoveredPalettePosition] = useState({ x: 0, y: 0 })
@@ -225,6 +231,7 @@ function App() {
   const selectPalette = (index) => {
     setSelectedPaletteIndex(index)
     setIsPalettePickerOpen(false)
+    localStorage.setItem('selectedPaletteIndex', index.toString())
   }
 
   const handleCloseDashboard = () => {
