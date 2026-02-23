@@ -972,7 +972,7 @@ function App() {
           </Tabs>
 
           {/* Drag Hint */}
-          {activeTab === 'photography' && showContent && showDragHint && !isMobile && (
+          {activeTab === 'photography' && showContent && showDragHint && !isMobile && !isLowEndDevice && (
             <DragHint />
           )}
 
