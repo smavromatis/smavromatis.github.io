@@ -172,8 +172,17 @@ const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut 
                 if (dist < 2) {
                     // Reached target, pick a new one and pause
                     pauseTime = Math.random() * 3 + 1; // pause for 1-4 seconds
-                    targetRight = startRight + (Math.random() * 2 - 1) * maxWanderOffset;
-                    targetBottom = startBottom + (Math.random() * 2 - 1) * maxWanderHeight;
+
+                    let newTargetRight = startRight + (Math.random() * 2 - 1) * maxWanderOffset;
+                    let newTargetBottom = startBottom + (Math.random() * 2 - 1) * maxWanderHeight;
+
+                    if (typeof window !== 'undefined') {
+                        newTargetRight = Math.max(10, Math.min(newTargetRight, window.innerWidth - 40));
+                        newTargetBottom = Math.max(10, Math.min(newTargetBottom, window.innerHeight - 40));
+                    }
+
+                    targetRight = newTargetRight;
+                    targetBottom = newTargetBottom;
 
                     // Face new direction based on right offset changing
                     // (targetRight < currentRight means it's moving RIGHT on the screen)
@@ -197,6 +206,11 @@ const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut 
             }
 
             if (duckRef.current) {
+                if (typeof window !== 'undefined') {
+                    currentRight = Math.max(10, Math.min(currentRight, window.innerWidth - 40));
+                    currentBottom = Math.max(10, Math.min(currentBottom, window.innerHeight - 40));
+                }
+
                 duckRef.current.style.right = `${currentRight}px`;
                 duckRef.current.style.bottom = `${currentBottom}px`;
 
