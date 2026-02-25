@@ -133,15 +133,23 @@ const PixelChinchilla = ({ direction = 'right' }) => (
     </>
 );
 
-const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut }) => {
+const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut, isUnder10, activeTab }) => {
     const duckRef = React.useRef(null);
+    const isUnder10Ref = React.useRef(isUnder10);
+    const activeTabRef = React.useRef(activeTab);
+
+    useEffect(() => {
+        isUnder10Ref.current = isUnder10;
+        activeTabRef.current = activeTab;
+    }, [isUnder10, activeTab]);
 
     useEffect(() => {
         let animationFrame;
         let lastTime = performance.now();
 
         // Settings for duck behavior
-        const speed = 25; // pixels per second
+        const idleSpeed = 25; // pixels per second
+        const investigateSpeed = 60 + Math.random() * 30; // 60-90 pixels per second
         const maxWanderOffset = 150; // max horizontal distance from start
         const maxWanderHeight = 30; // max vertical distance
 
@@ -154,6 +162,46 @@ const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut 
         let pauseTime = 0; // seconds to pause
         let currentDirection = 'left'; // initial visual state
         let wasWalking = false;
+        let currentSpeed = idleSpeed;
+
+        const handleGlobalClick = (e) => {
+            if (typeof window === 'undefined' || !isUnder10Ref.current || activeTabRef.current === 'photography') return;
+            // Prevent reacting if clicking a button
+            if (e.target && e.target.closest('button')) return;
+
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
+
+            if (x === undefined || y === undefined) return;
+
+            const scatterX = (Math.random() * 40 - 20);
+            const scatterY = (Math.random() * 40 - 20);
+
+            let newTargetRight = window.innerWidth - x + scatterX;
+            let newTargetBottom = window.innerHeight - y + scatterY;
+
+            newTargetRight = Math.max(10, Math.min(newTargetRight, window.innerWidth - 40));
+            newTargetBottom = Math.max(10, Math.min(newTargetBottom, window.innerHeight - 40));
+
+            targetRight = newTargetRight;
+            targetBottom = newTargetBottom;
+            pauseTime = 0;
+            currentSpeed = investigateSpeed;
+
+            const newDir = targetRight < currentRight ? 'right' : 'left';
+            if (newDir !== currentDirection) {
+                currentDirection = newDir;
+                if (duckRef.current) {
+                    const svg = duckRef.current.querySelector('svg');
+                    if (svg) {
+                        svg.style.transform = currentDirection === 'left' ? 'scaleX(-1)' : 'none';
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('click', handleGlobalClick);
+        window.addEventListener('touchstart', handleGlobalClick, { passive: true });
 
         const animate = (timestamp) => {
             const dt = (timestamp - lastTime) / 1000;
@@ -172,6 +220,7 @@ const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut 
                 if (dist < 2) {
                     // Reached target, pick a new one and pause
                     pauseTime = Math.random() * 3 + 1; // pause for 1-4 seconds
+                    currentSpeed = idleSpeed;
 
                     let newTargetRight = startRight + (Math.random() * 2 - 1) * maxWanderOffset;
                     let newTargetBottom = startBottom + (Math.random() * 2 - 1) * maxWanderHeight;
@@ -198,7 +247,7 @@ const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut 
                     }
                 } else {
                     // Move towards target
-                    const moveDist = speed * dt;
+                    const moveDist = currentSpeed * dt;
                     const ratio = Math.min(moveDist / dist, 1);
                     currentRight += dx * ratio;
                     currentBottom += dy * ratio;
@@ -233,6 +282,8 @@ const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut 
             if (animationFrame) {
                 cancelAnimationFrame(animationFrame);
             }
+            window.removeEventListener('click', handleGlobalClick);
+            window.removeEventListener('touchstart', handleGlobalClick);
         };
     }, [startRight, startBottom]);
 
@@ -254,7 +305,7 @@ const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut 
     );
 };
 
-export default function DucklingButton({ isMobile }) {
+export default function DucklingButton({ isMobile, activeTab }) {
     const [isHovered, setIsHovered] = useState(false);
     const [ducklings, setDucklings] = useState([]);
     const [ducklingIdCounter, setDucklingIdCounter] = useState(0);
@@ -527,6 +578,8 @@ export default function DucklingButton({ isMobile }) {
                     startRight={duck.startRight}
                     startBottom={duck.startBottom}
                     isFadingOut={isFadingOut}
+                    isUnder10={ducklings.length < 10}
+                    activeTab={activeTab}
                 />
             ))}
         </>

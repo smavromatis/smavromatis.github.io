@@ -1010,7 +1010,7 @@ function App() {
           />
 
           {/* Duckling Spawner Button */}
-          <DucklingButton isMobile={isMobile} />
+          <DucklingButton isMobile={isMobile} activeTab={activeTab} />
 
           {/* Credits Button */}
           <CreditsModal
