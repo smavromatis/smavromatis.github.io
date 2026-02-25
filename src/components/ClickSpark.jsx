@@ -71,6 +71,10 @@ const ClickSpark = ({
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      ctx.strokeStyle = sparkColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
       sparksRef.current = sparksRef.current.filter(spark => {
         const elapsed = timestamp - spark.startTime;
         if (elapsed >= duration) {
@@ -88,15 +92,13 @@ const ClickSpark = ({
         const x2 = spark.x + (distance + lineLength) * Math.cos(spark.angle);
         const y2 = spark.y + (distance + lineLength) * Math.sin(spark.angle);
 
-        ctx.strokeStyle = sparkColor;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
-        ctx.stroke();
 
         return true;
       });
+
+      ctx.stroke();
 
       if (sparksRef.current.length > 0) {
         animationId = requestAnimationFrame(draw);

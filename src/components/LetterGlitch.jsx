@@ -115,10 +115,15 @@ const LetterGlitch = ({
     ctx.font = `${fontSize}px monospace`;
     ctx.textBaseline = 'top';
 
+    let lastColor = '';
     letters.current.forEach((letter, index) => {
       const x = (index % grid.current.columns) * charWidth;
       const y = Math.floor(index / grid.current.columns) * charHeight;
-      ctx.fillStyle = colorToString(letter.color);
+      const currentFill = colorToString(letter.color);
+      if (lastColor !== currentFill) {
+        ctx.fillStyle = currentFill;
+        lastColor = currentFill;
+      }
       ctx.fillText(letter.char, x, y);
     });
   };
@@ -163,6 +168,9 @@ const LetterGlitch = ({
 
   const animate = () => {
     if (!isMountedRef.current) return;
+    animationRef.current = requestAnimationFrame(animate);
+
+    if (typeof document !== 'undefined' && document.hidden) return;
 
     const now = Date.now();
     if (now - lastGlitchTime.current >= glitchSpeed) {
@@ -174,8 +182,6 @@ const LetterGlitch = ({
     if (smooth) {
       handleSmoothTransitions();
     }
-
-    animationRef.current = requestAnimationFrame(animate);
   };
 
   useEffect(() => {

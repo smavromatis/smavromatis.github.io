@@ -87,8 +87,19 @@ const GlassSurface = ({
 
   const mapUpdateTimeoutRef = useRef(null);
   const isFirstRender = useRef(true);
+  const lastDimensions = useRef({ w: 0, h: 0 });
 
   const requestMapUpdate = () => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    // Prevent massively expensive string generation if size barely changed
+    const w = Math.round(rect.width);
+    const h = Math.round(rect.height);
+    if (Math.abs(lastDimensions.current.w - w) < 2 && Math.abs(lastDimensions.current.h - h) < 2) return;
+
+    lastDimensions.current = { w, h };
+
     if (isFirstRender.current) {
       updateDisplacementMap();
       isFirstRender.current = false;

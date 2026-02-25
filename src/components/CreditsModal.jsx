@@ -17,8 +17,7 @@ export default function CreditsModal({ isOpen, isMobile, onClose }) {
                             ? 'opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1)'
                             : 'opacity 300ms cubic-bezier(0.4, 0, 1, 1), transform 300ms cubic-bezier(0.4, 0, 1, 1)',
                         pointerEvents: isOpen ? 'auto' : 'none',
-                        visibility: isOpen ? 'visible' : 'hidden',
-                        transitionDelay: isOpen ? '0ms' : '0ms'
+                        visibility: isOpen ? 'visible' : 'hidden'
                     }}
                 >
                     <div className="w-full p-6 flex flex-col">

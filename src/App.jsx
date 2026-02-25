@@ -1,22 +1,25 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react'
+import React, { useEffect, useState, useRef, useCallback, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Lenis from 'lenis'
 import GlassSurface from '@/components/GlassSurface'
 import Aurora from '@/components/Aurora'
-import Archive from '@/components/Archive'
-import About from '@/components/About'
-import DomeGallery from '@/components/DomeGallery'
-import InfiniteGridGallery from '@/components/InfiniteGridGallery'
+
+const Archive = lazy(() => import('@/components/Archive'))
+const About = lazy(() => import('@/components/About'))
+const DomeGallery = lazy(() => import('@/components/DomeGallery'))
+const InfiniteGridGallery = lazy(() => import('@/components/InfiniteGridGallery'))
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ClickSpark from '@/components/ClickSpark'
 import DecryptedText from '@/components/DecryptedText'
 import LetterGlitch from '@/components/LetterGlitch'
-import HackerDashboard from '@/components/HackerDashboard'
-import CreditsModal from '@/components/CreditsModal'
-import EasterEggButton from '@/components/EasterEggButton'
-import DucklingButton from '@/components/DucklingButton'
 import DragHint from '@/components/DragHint'
-import ColorPaletteSelector from '@/components/ColorPaletteSelector'
+
+const HackerDashboard = lazy(() => import('@/components/HackerDashboard'))
+const CreditsModal = lazy(() => import('@/components/CreditsModal'))
+const EasterEggButton = lazy(() => import('@/components/EasterEggButton'))
+const DucklingButton = lazy(() => import('@/components/DucklingButton'))
+const ColorPaletteSelector = lazy(() => import('@/components/ColorPaletteSelector'))
+
 import { usePhotos } from '@/hooks/usePhotos'
 import 'lenis/dist/lenis.css'
 
@@ -696,9 +699,8 @@ function App() {
                               }`}
                             style={{
                               transition: shouldShow
-                                ? 'all 500ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 350ms ease-out'
-                                : 'all 500ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 150ms ease-in',
-                              transitionDelay: shouldShow ? `${index * 50}ms` : '0ms',
+                                ? `all 500ms cubic-bezier(0.34, 1.2, 0.64, 1) ${index * 50}ms, opacity 350ms ease-out ${index * 50}ms`
+                                : 'all 500ms cubic-bezier(0.34, 1.2, 0.64, 1) 0ms, opacity 150ms ease-in 0ms',
                               willChange: shouldShow ? 'flex, opacity' : 'auto',
                               background: 'transparent',
                               boxShadow: 'none',
@@ -715,8 +717,7 @@ function App() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                transition: shouldShow ? 'opacity 300ms ease-out' : 'opacity 100ms ease-in',
-                                transitionDelay: shouldShow ? '100ms' : '0ms'
+                                transition: shouldShow ? 'opacity 300ms ease-out 100ms' : 'opacity 100ms ease-in 0ms'
                               }}
                             >
                               {displayText}
@@ -772,7 +773,11 @@ function App() {
                   zIndex: isMobile ? 10 : 'auto'
                 }}
               >
-                {showContent && <Archive isWideView={isArchiveWideView} onWideViewChange={setIsArchiveWideView} />}
+                {showContent && (
+                  <Suspense fallback={null}>
+                    <Archive isWideView={isArchiveWideView} onWideViewChange={setIsArchiveWideView} />
+                  </Suspense>
+                )}
               </TabsContent>
 
               {/* Photography Tab - Full Screen Gallery */}
@@ -789,22 +794,24 @@ function App() {
                 >
                   {showContent && (
                     <div className="absolute inset-0 w-full h-full" style={{ zIndex: 20 }}>
-                      {isMobile ? (
-                        <InfiniteGridGallery
-                          images={photos}
-                          onInteraction={handleDomeInteraction}
-                        />
-                      ) : (
-                        <DomeGallery
-                          images={photos}
-                          grayscale={false}
-                          onInteraction={handleDomeInteraction}
-                          imageBorderRadius="30px"
-                          openedImageBorderRadius="30px"
-                          padFactor={0.05}
-                          enlargeTransitionMs={400}
-                        />
-                      )}
+                      <Suspense fallback={null}>
+                        {isMobile ? (
+                          <InfiniteGridGallery
+                            images={photos}
+                            onInteraction={handleDomeInteraction}
+                          />
+                        ) : (
+                          <DomeGallery
+                            images={photos}
+                            grayscale={false}
+                            onInteraction={handleDomeInteraction}
+                            imageBorderRadius="30px"
+                            openedImageBorderRadius="30px"
+                            padFactor={0.05}
+                            enlargeTransitionMs={400}
+                          />
+                        )}
+                      </Suspense>
                     </div>
                   )}
                 </TabsContent>
@@ -965,7 +972,11 @@ function App() {
                   pointerEvents: showContent ? 'auto' : 'none'
                 }}
               >
-                {showContent && <About />}
+                {showContent && (
+                  <Suspense fallback={null}>
+                    <About />
+                  </Suspense>
+                )}
               </TabsContent>
             </main>
           </Tabs>

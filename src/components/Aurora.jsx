@@ -126,10 +126,12 @@ export default function Aurora(props) {
 
     let renderer, gl;
     try {
+      const clampedDpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 1.5) : 1;
       renderer = new Renderer({
         alpha: true,
         premultipliedAlpha: true,
-        antialias: true
+        antialias: false,
+        dpr: propsRef.current.isStatic ? 1 : clampedDpr
       });
       gl = renderer.gl;
       if (!gl) throw new Error("No WebGL Support");
@@ -193,6 +195,9 @@ export default function Aurora(props) {
       if (!propsRef.current.isStatic) {
         animateId = requestAnimationFrame(update);
       }
+
+      // If hidden, save GPU cycles but keep RAF loop polling memory-free
+      if (typeof document !== 'undefined' && document.hidden) return;
 
       const { time = t * 0.01, speed = 1.0, isStatic } = propsRef.current;
 
