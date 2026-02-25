@@ -23,133 +23,11 @@ const ColorPaletteSelector = lazy(() => import('@/components/ColorPaletteSelecto
 import { usePhotos } from '@/hooks/usePhotos'
 import 'lenis/dist/lenis.css'
 
-const tabs = [
-  { id: 'home', label: 'Home', description: 'Latest thoughts and ideas.' },
-  {
-    id: 'photography',
-    label: 'Photography',
-    description: 'Stories captured through the lens.',
-  },
-  {
-    id: 'archive',
-    label: 'Archive',
-    description: 'A collection of experiments and builds.',
-  },
-  {
-    id: 'about',
-    label: 'About',
-    description: 'Get to know me better.',
-  },
-]
+import { tabs, colorPalettes } from '@/lib/constants'
+import { checkIsLowEndDevice } from '@/lib/device'
+import TabAwareAurora from '@/components/TabAwareAurora'
 
-const colorPalettes = [
-  { name: 'Arctic Dream', colors: ['#1e3a8a', '#10b981', '#6366f1'] },        // Deep blue → emerald green → indigo
-  { name: 'Polar Night', colors: ['#6366f1', '#ec4899', '#a855f7'] },        // Indigo → pink → purple
-  { name: 'Solar Storm', colors: ['#10b981', '#f472b6', '#14b8a6'] },        // Emerald → hot pink → teal
-  { name: 'Cosmic Dance', colors: ['#8b5cf6', '#06b6d4', '#d946ef'] },       // Purple → cyan → fuchsia
-  { name: 'Midnight Sun', colors: ['#7c3aed', '#fbbf24', '#f97316'] },       // Violet → amber → orange
-  { name: 'Ice Fire', colors: ['#0ea5e9', '#ec4899', '#06b6d4'] },           // Sky blue → pink → cyan
-  { name: 'Northern Whisper', colors: ['#a78bfa', '#6ee7b7', '#93c5fd'] },   // Lavender → mint → light blue
-]
-
-// Hardware Acceleration / Low End Device Check
-const checkIsLowEndDevice = () => {
-  if (typeof window === 'undefined') return false;
-
-  const stored = localStorage.getItem('isLowEndDevice');
-  if (stored !== null) return stored === 'true';
-
-  let isLowEnd = false;
-  try {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-
-    if (!gl) {
-      isLowEnd = true;
-    } else {
-      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-      if (debugInfo) {
-        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
-        const softwareRenderers = ['swiftshader', 'llvmpipe', 'software rasterizer'];
-        isLowEnd = softwareRenderers.some(str => renderer.includes(str));
-      }
-    }
-  } catch (e) {
-    isLowEnd = true;
-  }
-
-  localStorage.setItem('isLowEndDevice', isLowEnd);
-  return isLowEnd;
-};
-
-function TabAwareAurora({ activeTab, colorStops, isLowEndDevice }) {
-  const [auroraAmplitude, setAuroraAmplitude] = useState(1.0)
-  const [auroraBlend, setAuroraBlend] = useState(0.5)
-  const [auroraVerticalOffset, setAuroraVerticalOffset] = useState(0.0)
-  const animationRef = useRef(null)
-  const currentValuesRef = useRef({ amplitude: 1.0, blend: 0.5, verticalOffset: 0.0 })
-
-  useEffect(() => {
-    const targetAmplitude = (activeTab === 'archive' || activeTab === 'about') ? 0.3 : 1.0
-    const targetBlend = (activeTab === 'archive' || activeTab === 'about') ? 0.04 : 0.5
-    const targetVerticalOffset = (activeTab === 'archive' || activeTab === 'about') ? -0.6 : 0.0
-
-    if (isLowEndDevice) {
-      setAuroraAmplitude(targetAmplitude)
-      setAuroraBlend(targetBlend)
-      setAuroraVerticalOffset(targetVerticalOffset)
-      return
-    }
-
-    if (animationRef.current) cancelAnimationFrame(animationRef.current)
-
-    const startAmplitude = currentValuesRef.current.amplitude
-    const startBlend = currentValuesRef.current.blend
-    const startVerticalOffset = currentValuesRef.current.verticalOffset
-    const duration = 800 // ms
-    const startTime = performance.now()
-
-    const animate = (currentTime) => {
-      const elapsed = currentTime - startTime
-      const progress = Math.min(elapsed / duration, 1)
-
-      const eased = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2
-
-      const newAmplitude = startAmplitude + (targetAmplitude - startAmplitude) * eased
-      const newBlend = startBlend + (targetBlend - startBlend) * eased
-      const newVerticalOffset = startVerticalOffset + (targetVerticalOffset - startVerticalOffset) * eased
-
-      currentValuesRef.current = { amplitude: newAmplitude, blend: newBlend, verticalOffset: newVerticalOffset }
-      setAuroraAmplitude(newAmplitude)
-      setAuroraBlend(newBlend)
-      setAuroraVerticalOffset(newVerticalOffset)
-
-      if (progress < 1) {
-        animationRef.current = requestAnimationFrame(animate)
-      } else {
-        animationRef.current = null
-      }
-    }
-
-    animationRef.current = requestAnimationFrame(animate)
-
-    return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current)
-    }
-  }, [activeTab, isLowEndDevice])
-
-  return (
-    <Aurora
-      amplitude={auroraAmplitude}
-      blend={auroraBlend}
-      verticalOffset={auroraVerticalOffset}
-      colorStops={colorStops}
-      isStatic={isLowEndDevice}
-    />
-  )
-}
+const HomeHero = lazy(() => import('@/components/HomeHero'))
 
 function App() {
   // ========== HOME PAGE LAYOUT CONTROLS ==========
@@ -835,49 +713,15 @@ function App() {
                   }
                 }}
               >
-                <div
-                  ref={textContainerRef}
-                  className={`max-w-6xl mx-auto ${isMobile ? 'px-3 py-8' : 'px-4 sm:px-6'} ${isMobile ? 'space-y-4' : 'space-y-6 sm:space-y-8'}`}
-                  style={{
-                    transform: `translateY(${homeTextVerticalOffset}vh)`,
-                    transition: 'transform 600ms cubic-bezier(0.45, 0.05, 0.55, 0.95)',
-                    paddingBottom: isMobile ? '140px' : '0'
-                  }}
-                >
-                  {showContent && (
-                    <>
-                      <div className={`${isMobile ? 'space-y-3' : 'space-y-4 sm:space-y-6'}`}>
-                        <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl'} font-bold tracking-tight text-center ${isMobile ? 'px-2' : 'px-4'}`}>
-                          <DecryptedText
-                            text={homeContent.heroText}
-                            speed={30}
-                            sequential={true}
-                            revealDirection="start"
-                            animateOn="view"
-                            className="text-white"
-                            encryptedClassName="text-white/40"
-                            useOriginalCharsOnly={false}
-                            characters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-                          />
-                        </h1>
-
-                        <p className={`${isMobile ? 'text-sm' : 'text-base sm:text-lg md:text-xl'} text-white/90 max-w-4xl mx-auto leading-relaxed text-center ${isMobile ? 'px-2' : 'px-4'}`}>
-                          {homeContent.subtitle}
-                        </p>
-
-                        {/* Blog Features */}
-                        <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-3'} ${isMobile ? 'gap-3' : 'gap-4 sm:gap-6'} max-w-3xl mx-auto ${isMobile ? 'pt-3' : 'pt-4 sm:pt-8'} ${isMobile ? 'px-2' : 'px-4'}`}>
-                          {homeContent.features.map((feature, idx) => (
-                            <div key={idx} className={`text-center ${isMobile ? 'space-y-1' : 'space-y-2'} opacity-80 hover:opacity-100 transition-opacity`}>
-                              <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-white`}>{feature.title}</h3>
-                              <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-white/60`}>{feature.description}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+                <Suspense fallback={null}>
+                  <HomeHero
+                    homeContent={homeContent}
+                    isMobile={isMobile}
+                    showContent={showContent}
+                    textContainerRef={textContainerRef}
+                    homeTextVerticalOffset={homeTextVerticalOffset}
+                  />
+                </Suspense>
               </TabsContent>
 
               {/* Thought of the Day - Bottom of Home Screen */}
