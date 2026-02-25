@@ -157,7 +157,7 @@ export default function Aurora(props) {
         const height = ctn.offsetHeight;
         renderer.setSize(width, height);
         if (program) {
-          program.uniforms.uResolution.value = [width, height];
+          program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height];
         }
       }, 150);
     }
@@ -180,7 +180,7 @@ export default function Aurora(props) {
         uTime: { value: 0 },
         uAmplitude: { value: amplitude },
         uColorStops: { value: colorStopsArray },
-        uResolution: { value: [ctn.offsetWidth, ctn.offsetHeight] },
+        uResolution: { value: [ctn.offsetWidth * (propsRef.current.isStatic ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)), ctn.offsetHeight * (propsRef.current.isStatic ? 1 : Math.min(window.devicePixelRatio || 1, 1.5))] },
         uBlend: { value: blend },
         uVerticalOffset: { value: verticalOffset }
       }
@@ -220,7 +220,7 @@ export default function Aurora(props) {
       const initWidth = ctn.offsetWidth;
       const initHeight = ctn.offsetHeight;
       renderer.setSize(initWidth, initHeight);
-      if (program) program.uniforms.uResolution.value = [initWidth, initHeight];
+      if (program) program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height];
     }
 
     // Kick off animation loop, or run just exactly one static frame
