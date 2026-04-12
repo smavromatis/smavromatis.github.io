@@ -30,7 +30,11 @@ export default function photoManifestPlugin() {
           exif: {
             IFD0: {
               Artist: 'Stylianos Mavromatis',
-              Copyright: 'Stylianos Mavromatis - All rights reserved'
+              Copyright: '© 2026 Stylianos Mavromatis. All Rights Reserved.',
+              Software: 'https://smavromatis.com | OptimizedSMAVROMATIS',
+            },
+            ExifIFD: {
+              UserComment: 'Usage Terms: All Rights Reserved. No reproduction or commercial use without prior written permission. Web Statement: https://smavromatis.com',
             }
           }
         })
