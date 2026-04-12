@@ -42,6 +42,10 @@ export function usePhotos() {
 
         setPhotos(photoObjects);
         setLoading(false);
+
+        // Preload optimized images in the background so they're cached
+        // when the user navigates to the photography tab
+        preloadImages(photoObjects);
       } catch (err) {
         setError(err.message);
         setPhotos([]);
@@ -53,4 +57,30 @@ export function usePhotos() {
   }, []);
 
   return { photos, loading, error };
+}
+
+/**
+ * Silently preloads images in the background using requestIdleCallback
+ * and staggered loading to avoid blocking the main thread.
+ * Images are loaded via the Image() constructor which populates the browser cache.
+ */
+function preloadImages(photoObjects) {
+  const STAGGER_MS = 150; // Delay between each image to avoid network contention
+
+  const startPreloading = () => {
+    photoObjects.forEach((photo, index) => {
+      setTimeout(() => {
+        const img = new Image();
+        img.src = photo.src; // Preload optimized version (used in gallery)
+      }, index * STAGGER_MS);
+    });
+  };
+
+  // Use requestIdleCallback to wait until the browser is idle
+  // Falls back to a 2-second delay for browsers that don't support it
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(startPreloading, { timeout: 5000 });
+  } else {
+    setTimeout(startPreloading, 2000);
+  }
 }
