@@ -312,6 +312,9 @@ export default function DucklingButton({ isMobile, activeTab }) {
     const [multiplier, setMultiplier] = useState(1);
     const [lastClickTime, setLastClickTime] = useState(0);
     const [isFadingOut, setIsFadingOut] = useState(false);
+    const [hasOpenedEggs, setHasOpenedEggs] = useState(() => {
+        return localStorage.getItem('hasOpenedEggs') === 'true'
+    });
     const [fps, setFps] = useState(0);
 
     const isStressTest = ducklings.length > 10;
@@ -377,6 +380,11 @@ export default function DucklingButton({ isMobile, activeTab }) {
         }
         setLastClickTime(now);
 
+        if (!hasOpenedEggs) {
+            setHasOpenedEggs(true);
+            localStorage.setItem('hasOpenedEggs', 'true');
+        }
+
         const newEntities = [];
         let currentId = ducklingIdCounter + 1;
 
@@ -406,6 +414,21 @@ export default function DucklingButton({ isMobile, activeTab }) {
                     body.stress-test-mode #main-app-content > *:not(.duckling-keep) {
                         opacity: 0 !important;
                         pointer-events: none !important;
+                    }
+
+                    @keyframes goldenPulse {
+                        0% { 
+                            box-shadow: 0 0 0px rgba(255, 215, 0, 0);
+                            border-color: rgba(255, 215, 0, 0.1);
+                        }
+                        50% { 
+                            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), inset 0 0 5px rgba(255, 215, 0, 0.2);
+                            border-color: rgba(255, 215, 0, 0.5);
+                        }
+                        100% { 
+                            box-shadow: 0 0 0px rgba(255, 215, 0, 0);
+                            border-color: rgba(255, 215, 0, 0.1);
+                        }
                     }
                 `}
             </style>
@@ -544,7 +567,10 @@ export default function DucklingButton({ isMobile, activeTab }) {
                                 : 'rgba(255, 255, 255, 0.05)',
                             boxShadow: isHovered
                                 ? '0 0 20px rgba(255, 165, 0, 0.5), 0 0 40px rgba(255, 165, 0, 0.3), inset 0 0 10px rgba(255, 165, 0, 0.2)'
-                                : 'none'
+                                : !hasOpenedEggs
+                                    ? '0 0 12px rgba(255, 215, 0, 0.3)'
+                                    : 'none',
+                            animation: !hasOpenedEggs && !isHovered ? 'goldenPulse 3s infinite ease-in-out' : 'none'
                         }}
                     >
                         <svg
@@ -557,11 +583,11 @@ export default function DucklingButton({ isMobile, activeTab }) {
                             strokeLinejoin="round"
                             className="transition-all duration-500"
                             style={{
-                                opacity: isHovered ? 1 : 0.7,
-                                stroke: isHovered ? '#FFA500' : 'white',
+                                opacity: isHovered ? 1 : (!hasOpenedEggs ? 0.9 : 0.7),
+                                stroke: isHovered ? '#FFA500' : (!hasOpenedEggs ? '#FFD700' : 'white'),
                                 filter: isHovered
                                     ? 'drop-shadow(0 0 6px rgba(255, 165, 0, 0.8))'
-                                    : 'none'
+                                    : (!hasOpenedEggs ? 'drop-shadow(0 0 4px rgba(255, 215, 0, 0.4))' : 'none')
                             }}
                         >
                             <path d="M12 22c5 0 8-4 8-9s-4-11-8-11-8 6-8 11 3 9 8 9z" vectorEffect="non-scaling-stroke"></path>
