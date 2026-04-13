@@ -4,21 +4,40 @@ import Lenis from 'lenis'
 import GlassSurface from '@/components/GlassSurface'
 import Aurora from '@/components/Aurora'
 
-const Archive = lazy(() => import('@/components/Archive'))
-const About = lazy(() => import('@/components/About'))
-const DomeGallery = lazy(() => import('@/components/DomeGallery'))
-const InfiniteGridGallery = lazy(() => import('@/components/InfiniteGridGallery'))
+// Helper function to handle lazy loading with retry/reload mechanism for chunk errors
+const lazyWithRetry = (componentImport) => {
+  return lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      console.error('Chunk loading failed, forcing reload...', error);
+      // Only reload once to avoid infinite loops if it's a real network issue
+      const hasReloaded = sessionStorage.getItem('chunk_reload');
+      if (!hasReloaded) {
+        sessionStorage.setItem('chunk_reload', 'true');
+        window.location.reload();
+        return { default: () => null }; // Return empty component while reloading
+      }
+      throw error;
+    }
+  });
+};
+
+const Archive = lazyWithRetry(() => import('@/components/Archive'))
+const About = lazyWithRetry(() => import('@/components/About'))
+const DomeGallery = lazyWithRetry(() => import('@/components/DomeGallery'))
+const InfiniteGridGallery = lazyWithRetry(() => import('@/components/InfiniteGridGallery'))
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import ClickSpark from '@/components/ClickSpark'
 import DecryptedText from '@/components/DecryptedText'
 import LetterGlitch from '@/components/LetterGlitch'
 import DragHint from '@/components/DragHint'
 
-const HackerDashboard = lazy(() => import('@/components/HackerDashboard'))
-const CreditsModal = lazy(() => import('@/components/CreditsModal'))
-const EasterEggButton = lazy(() => import('@/components/EasterEggButton'))
-const DucklingButton = lazy(() => import('@/components/DucklingButton'))
-const ColorPaletteSelector = lazy(() => import('@/components/ColorPaletteSelector'))
+const HackerDashboard = lazyWithRetry(() => import('@/components/HackerDashboard'))
+const CreditsModal = lazyWithRetry(() => import('@/components/CreditsModal'))
+const EasterEggButton = lazyWithRetry(() => import('@/components/EasterEggButton'))
+const DucklingButton = lazyWithRetry(() => import('@/components/DucklingButton'))
+const ColorPaletteSelector = lazyWithRetry(() => import('@/components/ColorPaletteSelector'))
 
 import { usePhotos } from '@/hooks/usePhotos'
 import 'lenis/dist/lenis.css'
@@ -27,8 +46,8 @@ import { tabs, colorPalettes } from '@/lib/constants'
 import { checkIsLowEndDevice } from '@/lib/device'
 import TabAwareAurora from '@/components/TabAwareAurora'
 
-const HomeHero = lazy(() => import('@/components/HomeHero'))
-const ThoughtOfTheDay = lazy(() => import('@/components/ThoughtOfTheDay'))
+const HomeHero = lazyWithRetry(() => import('@/components/HomeHero'))
+const ThoughtOfTheDay = lazyWithRetry(() => import('@/components/ThoughtOfTheDay'))
 import NavigationMenu from '@/components/NavigationMenu'
 
 const LoadingState = () => (
@@ -204,6 +223,11 @@ function App() {
   }, [])
 
   // Detect mobile device
+  useEffect(() => {
+    // Clear the chunk reload flag once the app has successfully mounted
+    sessionStorage.removeItem('chunk_reload');
+  }, []);
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
