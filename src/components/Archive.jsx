@@ -9,6 +9,15 @@ import GlassSurface from '@/components/GlassSurface'
 import Lenis from 'lenis'
 import { cn } from '@/lib/utils'
 
+const LoadingState = () => (
+  <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-8 h-8 border-2 border-white/10 border-t-white/40 rounded-full animate-spin" />
+      <p className="text-white/20 text-xs uppercase tracking-widest font-medium">Loading</p>
+    </div>
+  </div>
+);
+
 const getMarkdownClasses = (isMobile) => cn(
   'prose prose-invert max-w-none',
   'prose-headings:text-white prose-headings:font-bold prose-headings:tracking-tight',
@@ -75,6 +84,11 @@ const getMarkdownClasses = (isMobile) => cn(
 )
 
 const Archive = ({ isWideView, onWideViewChange, archiveConfig }) => {
+  // Safety check: if archive data is missing entirely, show loading or empty
+  if (!archive || !archive.categories) {
+    return <LoadingState />;
+  }
+  
   const { categories, items } = archive
   const scrollContainerRef = useRef(null)
   const lenisRef = useRef(null)

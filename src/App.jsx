@@ -31,6 +31,15 @@ const HomeHero = lazy(() => import('@/components/HomeHero'))
 const ThoughtOfTheDay = lazy(() => import('@/components/ThoughtOfTheDay'))
 import NavigationMenu from '@/components/NavigationMenu'
 
+const LoadingState = () => (
+  <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-8 h-8 border-2 border-white/10 border-t-white/40 rounded-full animate-spin" />
+      <p className="text-white/20 text-xs uppercase tracking-widest font-medium">Loading</p>
+    </div>
+  </div>
+);
+
 function App() {
   // ========== HOME PAGE LAYOUT CONTROLS ==========
   // Adjust these values to position elements on the home page
@@ -437,7 +446,7 @@ function App() {
                 }}
               >
                 {showContent && (
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<LoadingState />}>
                     <Archive 
                       isWideView={isArchiveWideView} 
                       onWideViewChange={setIsArchiveWideView}
@@ -461,7 +470,7 @@ function App() {
                 >
                   {showContent && (
                     <div className="absolute inset-0 w-full h-full" style={{ zIndex: 20 }}>
-                      <Suspense fallback={null}>
+                      <Suspense fallback={<LoadingState />}>
                         {isMobile ? (
                           <InfiniteGridGallery
                             images={photos}
@@ -502,7 +511,7 @@ function App() {
                   }
                 }}
               >
-                <Suspense fallback={null}>
+                <Suspense fallback={<LoadingState />}>
                   <HomeHero
                     homeContent={homeContent}
                     isMobile={isMobile}
@@ -515,7 +524,7 @@ function App() {
 
               {/* Thought of the Day - Bottom of Home Screen */}
               {activeTab === 'home' && showContent && (
-                <Suspense fallback={null}>
+                <Suspense fallback={<LoadingState />}>
                   <ThoughtOfTheDay
                     allThoughts={allThoughts}
                     isMobile={isMobile}
@@ -535,7 +544,7 @@ function App() {
                 }}
               >
                 {showContent && (
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<LoadingState />}>
                     <About />
                   </Suspense>
                 )}
@@ -582,12 +591,14 @@ function App() {
           />
 
           {/* Hacker Dashboard Overlay */}
-          <HackerDashboard
-            isOpen={isHackerDashboardOpen}
-            isClosing={isHackerDashboardClosing}
-            onClose={handleCloseDashboard}
-            showCloseButton={showCloseButton}
-          />
+          <Suspense fallback={null}>
+            <HackerDashboard
+              isOpen={isHackerDashboardOpen}
+              isClosing={isHackerDashboardClosing}
+              onClose={handleCloseDashboard}
+              showCloseButton={showCloseButton}
+            />
+          </Suspense>
 
           {/* Animations */}
           <style>{`
