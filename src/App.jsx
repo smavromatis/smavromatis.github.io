@@ -3,6 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import Lenis from 'lenis'
 import GlassSurface from '@/components/GlassSurface'
 import Aurora from '@/components/Aurora'
+import Archive from '@/components/Archive'
+import About from '@/components/About'
+import HomeHero from '@/components/HomeHero'
+import ThoughtOfTheDay from '@/components/ThoughtOfTheDay'
+import EasterEggButton from '@/components/EasterEggButton'
+import DucklingButton from '@/components/DucklingButton'
+import ColorPaletteSelector from '@/components/ColorPaletteSelector'
 
 // Helper function to handle lazy loading with retry/reload mechanism for chunk errors
 const lazyWithRetry = (componentImport) => {
@@ -23,8 +30,6 @@ const lazyWithRetry = (componentImport) => {
   });
 };
 
-const Archive = lazyWithRetry(() => import('@/components/Archive'))
-const About = lazyWithRetry(() => import('@/components/About'))
 const DomeGallery = lazyWithRetry(() => import('@/components/DomeGallery'))
 const InfiniteGridGallery = lazyWithRetry(() => import('@/components/InfiniteGridGallery'))
 import { Tabs, TabsContent } from '@/components/ui/tabs'
@@ -35,9 +40,6 @@ import DragHint from '@/components/DragHint'
 
 const HackerDashboard = lazyWithRetry(() => import('@/components/HackerDashboard'))
 const CreditsModal = lazyWithRetry(() => import('@/components/CreditsModal'))
-const EasterEggButton = lazyWithRetry(() => import('@/components/EasterEggButton'))
-const DucklingButton = lazyWithRetry(() => import('@/components/DucklingButton'))
-const ColorPaletteSelector = lazyWithRetry(() => import('@/components/ColorPaletteSelector'))
 
 import { usePhotos } from '@/hooks/usePhotos'
 import 'lenis/dist/lenis.css'
@@ -45,9 +47,6 @@ import 'lenis/dist/lenis.css'
 import { tabs, colorPalettes } from '@/lib/constants'
 import { checkIsLowEndDevice } from '@/lib/device'
 import TabAwareAurora from '@/components/TabAwareAurora'
-
-const HomeHero = lazyWithRetry(() => import('@/components/HomeHero'))
-const ThoughtOfTheDay = lazyWithRetry(() => import('@/components/ThoughtOfTheDay'))
 import NavigationMenu from '@/components/NavigationMenu'
 
 const LoadingState = () => (
@@ -470,13 +469,11 @@ function App() {
                 }}
               >
                 {showContent && (
-                  <Suspense fallback={<LoadingState />}>
-                    <Archive 
-                      isWideView={isArchiveWideView} 
-                      onWideViewChange={setIsArchiveWideView}
-                      archiveConfig={archiveConfig}
-                    />
-                  </Suspense>
+                  <Archive 
+                    isWideView={isArchiveWideView} 
+                    onWideViewChange={setIsArchiveWideView}
+                    archiveConfig={archiveConfig}
+                  />
                 )}
               </TabsContent>
 
@@ -535,26 +532,22 @@ function App() {
                   }
                 }}
               >
-                <Suspense fallback={<LoadingState />}>
-                  <HomeHero
-                    homeContent={homeContent}
-                    isMobile={isMobile}
-                    showContent={showContent}
-                    textContainerRef={textContainerRef}
-                    homeTextVerticalOffset={homeTextVerticalOffset}
-                  />
-                </Suspense>
+                <HomeHero
+                  homeContent={homeContent}
+                  isMobile={isMobile}
+                  showContent={showContent}
+                  textContainerRef={textContainerRef}
+                  homeTextVerticalOffset={homeTextVerticalOffset}
+                />
               </TabsContent>
 
               {/* Thought of the Day - Bottom of Home Screen */}
               {activeTab === 'home' && showContent && (
-                <Suspense fallback={<LoadingState />}>
-                  <ThoughtOfTheDay
-                    allThoughts={allThoughts}
-                    isMobile={isMobile}
-                    showContent={showContent}
-                  />
-                </Suspense>
+                <ThoughtOfTheDay
+                  allThoughts={allThoughts}
+                  isMobile={isMobile}
+                  showContent={showContent}
+                />
               )}
 
               {/* About Tab */}
@@ -568,9 +561,7 @@ function App() {
                 }}
               >
                 {showContent && (
-                  <Suspense fallback={<LoadingState />}>
-                    <About />
-                  </Suspense>
+                  <About />
                 )}
               </TabsContent>
             </main>

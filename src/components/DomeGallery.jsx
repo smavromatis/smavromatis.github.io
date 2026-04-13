@@ -558,112 +558,62 @@ export default function DomeGallery({
     };
 
     scrim.addEventListener('click', close);
-    const onKey = e => {
-      if (e.key === 'Escape') {
-        close();
-      } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        e.preventDefault();
 
-        // Only navigate if an image is currently enlarged
-        const currentFocused = focusedElRef.current;
-        if (!currentFocused) return;
+    const navigate = (dir) => {
+      const cur = focusedElRef.current;
+      if (!cur) return;
+      const all = Array.from(sphereRef.current?.querySelectorAll('.sphere-item') || []);
+      const idx = all.indexOf(cur.parentElement);
+      if (idx === -1) return;
+      const nextIdx = dir === 'next' ? (idx + 1) % all.length : (idx - 1 + all.length) % all.length;
+      const nextItem = all[nextIdx];
+      const nextImg = nextItem?.querySelector('.item__image:not(.item__image--reference)');
+      if (!nextImg) return;
 
-        // Find the current image's parent item
-        const currentParent = currentFocused.parentElement;
-        if (!currentParent) return;
-
-        // Get all sphere items
-        const allItems = Array.from(sphereRef.current?.querySelectorAll('.sphere-item') || []);
-        const currentIndex = allItems.indexOf(currentParent);
-
-        if (currentIndex === -1) return;
-
-        // Calculate next/previous index with wrapping
-        let nextIndex;
-        if (e.key === 'ArrowRight') {
-          nextIndex = (currentIndex + 1) % allItems.length;
-        } else {
-          nextIndex = (currentIndex - 1 + allItems.length) % allItems.length;
+      const overlay = viewerRef.current?.querySelector('.enlarge');
+      if (overlay) {
+        const img = overlay.querySelector('img');
+        if (img) {
+          overlay.style.opacity = '0.5';
+          setTimeout(() => {
+            img.src = nextItem.dataset.srcOriginal || nextItem.dataset.src || '';
+            img.alt = nextItem.dataset.alt || '';
+            overlay.style.opacity = '1';
+          }, 100);
         }
+        cur.parentElement.querySelector('.item__image--reference')?.remove();
+        cur.parentElement.style.setProperty('--rot-y-delta', '0deg');
+        cur.parentElement.style.setProperty('--rot-x-delta', '0deg');
+        cur.style.visibility = 'visible';
+        cur.style.opacity = '1';
+        cur.style.zIndex = '';
+        cur.removeAttribute('data-focused');
 
-        // Get the next item and image element
-        const nextItem = allItems[nextIndex];
-        const nextImage = nextItem?.querySelector('.item__image:not(.item__image--reference)');
+        const nextParent = nextImg.parentElement;
+        const nRot = computeItemBaseRotation(getDataNumber(nextParent, 'offsetX', 0), getDataNumber(nextParent, 'offsetY', 0), getDataNumber(nextParent, 'sizeX', 2), getDataNumber(nextParent, 'sizeY', 2), effectiveSegments);
+        const rY = -(normalizeAngle(nRot.rotateY) + normalizeAngle(rotationRef.current.y)) % 360;
+        nextParent.style.setProperty('--rot-y-delta', `${rY < -180 ? rY + 360 : rY}deg`);
+        nextParent.style.setProperty('--rot-x-delta', `${-nRot.rotateX - rotationRef.current.x}deg`);
 
-        if (!nextImage) return;
+        const ref = document.createElement('div');
+        ref.className = 'item__image item__image--reference opacity-0';
+        ref.style.transform = `rotateX(${-nRot.rotateX}deg) rotateY(${-nRot.rotateY}deg)`;
+        nextParent.appendChild(ref);
 
-        // Update the enlarged overlay with the new image
-        const overlay = viewerRef.current?.querySelector('.enlarge');
-        if (overlay) {
-          const img = overlay.querySelector('img');
-          const rawSrc = nextItem.dataset.srcOriginal || nextItem.dataset.src || '';
-          const rawAlt = nextItem.dataset.alt || '';
-
-          if (img) {
-            // Fade out, change image, fade in
-            overlay.style.opacity = '0.5';
-            setTimeout(() => {
-              img.src = rawSrc;
-              img.alt = rawAlt;
-              overlay.style.opacity = '1';
-            }, 100);
-          }
-
-          // Clean up old reference div
-          const oldRefDiv = currentParent.querySelector('.item__image--reference');
-          if (oldRefDiv) {
-            oldRefDiv.remove();
-          }
-
-          // Reset old parent rotation deltas
-          currentParent.style.setProperty('--rot-y-delta', '0deg');
-          currentParent.style.setProperty('--rot-x-delta', '0deg');
-
-          // Restore previous image visibility properly
-          currentFocused.style.visibility = 'visible';
-          currentFocused.style.opacity = '1';
-          currentFocused.style.zIndex = '';
-          currentFocused.removeAttribute('data-focused');
-
-          // Setup new image
-          const nextParent = nextImage.parentElement;
-          const offsetX = getDataNumber(nextParent, 'offsetX', 0);
-          const offsetY = getDataNumber(nextParent, 'offsetY', 0);
-          const sizeX = getDataNumber(nextParent, 'sizeX', 2);
-          const sizeY = getDataNumber(nextParent, 'sizeY', 2);
-
-          const nextRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, effectiveSegments);
-          const parentY = normalizeAngle(nextRot.rotateY);
-          const globalY = normalizeAngle(rotationRef.current.y);
-          let rotY = -(parentY + globalY) % 360;
-          if (rotY < -180) rotY += 360;
-          const rotX = -nextRot.rotateX - rotationRef.current.x;
-
-          nextParent.style.setProperty('--rot-y-delta', `${rotY}deg`);
-          nextParent.style.setProperty('--rot-x-delta', `${rotX}deg`);
-
-          // Create reference div for new image
-          const newRefDiv = document.createElement('div');
-          newRefDiv.className = 'item__image item__image--reference opacity-0';
-          newRefDiv.style.transform = `rotateX(${-nextRot.rotateX}deg) rotateY(${-nextRot.rotateY}deg)`;
-          nextParent.appendChild(newRefDiv);
-
-          // Update position reference
-          const tileR = newRefDiv.getBoundingClientRect();
-          originalTilePositionRef.current = {
-            left: tileR.left,
-            top: tileR.top,
-            width: tileR.width,
-            height: tileR.height
-          };
-
-          // Hide new image and set as focused
-          nextImage.style.visibility = 'hidden';
-          nextImage.style.zIndex = 0;
-          nextImage.setAttribute('data-focused', 'true');
-          focusedElRef.current = nextImage;
-        }
+        const rect = ref.getBoundingClientRect();
+        originalTilePositionRef.current = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+        nextImg.style.visibility = 'hidden';
+        nextImg.setAttribute('data-focused', 'true');
+        focusedElRef.current = nextImg;
       }
+    };
+
+    if (viewerRef.current) viewerRef.current._navigate = navigate;
+
+    const onKey = e => {
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowRight') { e.preventDefault(); navigate('next'); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); navigate('prev'); }
     };
     window.addEventListener('keydown', onKey);
 
@@ -1346,10 +1296,7 @@ export default function DomeGallery({
                   blueOffset={30}
                 >
                   <button
-                    onClick={() => {
-                      const event = new KeyboardEvent('keydown', { key: 'ArrowLeft' });
-                      window.dispatchEvent(event);
-                    }}
+                    onClick={() => viewerRef.current?._navigate?.('prev')}
                     className="w-full h-full rounded-full flex items-center justify-center text-white/90 hover:text-white active:text-white hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] transition-all duration-200 hover:scale-110 active:scale-95"
                     aria-label="Previous image"
                     style={{
@@ -1387,10 +1334,7 @@ export default function DomeGallery({
                   blueOffset={30}
                 >
                   <button
-                    onClick={() => {
-                      const event = new KeyboardEvent('keydown', { key: 'ArrowRight' });
-                      window.dispatchEvent(event);
-                    }}
+                    onClick={() => viewerRef.current?._navigate?.('next')}
                     className="w-full h-full rounded-full flex items-center justify-center text-white/90 hover:text-white active:text-white hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] transition-all duration-200 hover:scale-110 active:scale-95"
                     aria-label="Next image"
                     style={{
