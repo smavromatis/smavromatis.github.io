@@ -75,6 +75,11 @@ function App() {
         if (data.quotes && data.quotes.length > 0) {
           setAllThoughts(data.quotes);
         }
+        // Preload profile picture so it's cached before the user visits About
+        if (data.about?.imagePath) {
+          const img = new Image();
+          img.src = data.about.imagePath;
+        }
       })
       .catch(error => console.error('Error loading content:', error));
   }, []);
