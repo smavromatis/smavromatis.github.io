@@ -40,5 +40,10 @@
             "linkedin": "https://linkedin.com/in/stylianos-mavromatis",
             "resume": ""
         }
+    },
+    "archiveConfig": {
+        "isDrafting": true,
+        "draftingMessage": "Articles and stories are currently being drafted and will be published soon. Stay tuned!",
+        "draftingTitle": "Building the Archive"
     }
 }

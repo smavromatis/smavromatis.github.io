@@ -74,13 +74,44 @@ const getMarkdownClasses = (isMobile) => cn(
   isMobile ? 'prose-hr:border-white/20 prose-hr:my-6' : 'prose-hr:border-white/20 prose-hr:my-12'
 )
 
-const Archive = ({ isWideView, onWideViewChange }) => {
+const Archive = ({ isWideView, onWideViewChange, archiveConfig }) => {
   const { categories, items } = archive
   const scrollContainerRef = useRef(null)
   const lenisRef = useRef(null)
 
   const location = useLocation()
   const navigate = useNavigate()
+
+  // Safety check for maintenance mode
+  if (archiveConfig?.isDrafting) {
+    return (
+      <div className="w-full flex items-center justify-center min-h-[60vh] px-6">
+        <div className="text-center max-w-lg">
+          <div className="mb-8 relative inline-block">
+            <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full" />
+            <svg
+              className="w-24 h-24 text-white/20 mx-auto relative animate-pulse"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-bold text-white mb-4 tracking-tight drop-shadow-sm">
+            {archiveConfig.draftingTitle}
+          </h2>
+          <p className="text-white/60 text-lg leading-relaxed">
+            {archiveConfig.draftingMessage}
+          </p>
+          <div className="mt-10 flex flex-col items-center gap-2">
+            <div className="h-1 w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full" />
+            <p className="text-white/30 text-xs uppercase tracking-[0.2em] font-medium">Under Maintenance</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const getItemIdFromPath = useCallback(() => {
     const parts = location.pathname.split('/')

@@ -64,6 +64,11 @@ function App() {
       }
     ]
   });
+  const [archiveConfig, setArchiveConfig] = useState({
+    isDrafting: true, // Start as true so it matches your current JSON
+    draftingTitle: "Building the Archive",
+    draftingMessage: "Articles and stories are currently being drafted and will be published soon. Stay tuned!"
+  });
 
   useEffect(() => {
     fetch('/content.json')
@@ -71,6 +76,9 @@ function App() {
       .then(data => {
         if (data.home) {
           setHomeContent(data.home);
+        }
+        if (data.archiveConfig) {
+          setArchiveConfig(data.archiveConfig);
         }
         if (data.quotes && data.quotes.length > 0) {
           setAllThoughts(data.quotes);
@@ -430,7 +438,11 @@ function App() {
               >
                 {showContent && (
                   <Suspense fallback={null}>
-                    <Archive isWideView={isArchiveWideView} onWideViewChange={setIsArchiveWideView} />
+                    <Archive 
+                      isWideView={isArchiveWideView} 
+                      onWideViewChange={setIsArchiveWideView}
+                      archiveConfig={archiveConfig}
+                    />
                   </Suspense>
                 )}
               </TabsContent>
