@@ -1,19 +1,19 @@
 {
     "home": {
         "heroText": "Welcome to my corner of the web",
-        "subtitle": "Driven by curiosity and problem-solving. Breaking systems down to understand how they work, learning something new, and sharing that knowledge to help others grow.",
+        "subtitle": "If it’s technical, 'impossible', and helps the community once it’s solved, count me in.",
         "features": [
             {
                 "title": "Hacking & Reverse Engineering",
-                "description": "Deconstructing systems to reveal their inner workings"
+                "description": "Breaking things to figure out how they work and how to make them better."
             },
             {
-                "title": "3D Printing & Robotics",
-                "description": "Building tangible solutions from digital blueprints"
+                "title": "Making & Tinkering",
+                "description": "Designing and 3D printing custom tools to solve everyday problems."
             },
             {
-                "title": "Astrophotography & F1",
-                "description": "Capturing the cosmos and celebrating engineering excellence"
+                "title": "Life & Hobbies",
+                "description": "Rowing, taking photos, and hanging out with my chinchilla."
             }
         ]
     },
@@ -31,7 +31,7 @@
         "name": "Stylianos Mavromatis",
         "title": "",
         "bio": [
-            "I'm driven by curiosity and a love for problem-solving, whether it's breaking systems down to understand how they work, learning something new, or sharing that knowledge to help others grow.",
+            "At my core, I just want to help people by solving hard problems. Currently I am a persistent debugger and security researcher with a focus on web app pentesting, business logic flaw exploitation and JavaScript reverse engineering. I actively look for the fun, complicated projects that others usually pass on as I love the process of figuring out the unknown, mastering it, and sharing that knowledge. If it’s technical, 'impossible', and helps the community once it’s solved, count me in.",
             "Let’s connect! I’m always up for an interesting conversation or a collaborative brainstorm."
         ],
         "imagePath": "/photo_profile.jpg",
