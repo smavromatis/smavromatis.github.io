@@ -143,7 +143,11 @@ function App() {
   const [activeTab, setActiveTab] = useState(getTabFromPath())
   const [isNavExpanded, setIsNavExpanded] = useState(false)
   const [showContent, setShowContent] = useState(true)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) return true;
+    return window.matchMedia('(max-width: 767px)').matches;
+  })
   const [selectedPaletteIndex, setSelectedPaletteIndex] = useState(getInitialPalette)
   const [isPalettePickerOpen, setIsPalettePickerOpen] = useState(false)
   const [hoveredPaletteName, setHoveredPaletteName] = useState(null)
@@ -416,7 +420,7 @@ function App() {
         {/* Background - Dynamic parameters based on active tab */}
         <div
           className="fixed inset-0 z-0"
-          style={{ width: '100%', height: '100dvh' }}
+          style={{ width: '100%', height: '100vh' }}
         >
           <TabAwareAurora
             activeTab={activeTab}
@@ -432,7 +436,7 @@ function App() {
             style={{
               opacity: showContent ? 1 : 0,
               transition: showContent ? 'opacity 400ms ease-in 100ms' : 'opacity 400ms ease-in',
-              height: '100dvh',
+              height: '100vh',
             }}
           />
         )}

@@ -135,7 +135,11 @@ const Archive = ({ isWideView, onWideViewChange, archiveConfig }) => {
   }
 
   const [selectedItemId, setSelectedItemId] = useState(getItemIdFromPath())
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) return true;
+    return window.matchMedia('(max-width: 767px)').matches;
+  })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [menuQuery, setMenuQuery] = useState('')
   const [activeCategoryId, setActiveCategoryId] = useState(null)
@@ -255,7 +259,7 @@ const Archive = ({ isWideView, onWideViewChange, archiveConfig }) => {
   // Safety check for maintenance mode
   if (archiveConfig?.isDrafting) {
     return (
-      <div className="w-full flex items-center justify-center min-h-[60vh] px-6">
+      <div className={`w-full flex items-center justify-center px-6 ${isMobile ? 'fixed inset-0 z-[10] touch-none overflow-hidden' : 'min-h-[60vh]'}`}>
         <div className="text-center max-w-lg">
           <div className="mb-8 relative inline-block">
             <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full" />

@@ -76,18 +76,8 @@ export default function HomeHero({
 
                 {/* Hero text */}
                 <div className="space-y-3 mb-10">
-                    <h1 className="text-3xl font-bold tracking-tight text-center">
-                        <DecryptedText
-                            text={homeContent.heroText}
-                            speed={30}
-                            sequential={true}
-                            revealDirection="start"
-                            animateOn="view"
-                            className="text-white"
-                            encryptedClassName="text-white/40"
-                            useOriginalCharsOnly={false}
-                            characters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-                        />
+                    <h1 className="text-3xl font-bold tracking-tight text-center text-white">
+                        {homeContent.heroText}
                     </h1>
                     <p className="text-sm text-white/70 leading-relaxed text-center px-1">
                         {homeContent.subtitle}
