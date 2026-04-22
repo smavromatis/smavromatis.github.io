@@ -409,37 +409,39 @@ function App() {
       duration={500}
       easing="ease-out"
     >
+      {/* Background - Fixed at bottom layer */}
       <div
-        className="relative min-h-screen overflow-hidden bg-background text-foreground"
+        className="fixed inset-0 z-0"
+        style={{ width: '100%', height: '100vh' }}
+      >
+        <TabAwareAurora
+          activeTab={activeTab}
+          colorStops={colorPalettes[selectedPaletteIndex].colors}
+          isLowEndDevice={isLowEndDevice}
+        />
+      </div>
+
+      {/* Full-screen blur overlay */}
+      {(activeTab === 'archive' || activeTab === 'photography' || activeTab === 'about') && (
+        <div
+          className={`fixed inset-0 z-5 bg-black/40 pointer-events-none ${isLowEndDevice ? '' : 'backdrop-blur-md bg-black/20'}`}
+          style={{
+            opacity: showContent ? 1 : 0,
+            transition: showContent ? 'opacity 400ms ease-in 100ms' : 'opacity 400ms ease-in',
+            height: '100vh',
+          }}
+        />
+      )}
+
+      {/* Main Content Wrapper - Transparent to let background through */}
+      <div
+        className="relative z-10 min-h-screen overflow-hidden text-foreground"
         onClick={() => {
           if (isCreditsOpen) {
             setIsCreditsOpen(false)
           }
         }}
       >
-        {/* Background - Dynamic parameters based on active tab */}
-        <div
-          className="fixed inset-0 z-0"
-          style={{ width: '100%', height: '100vh' }}
-        >
-          <TabAwareAurora
-            activeTab={activeTab}
-            colorStops={colorPalettes[selectedPaletteIndex].colors}
-            isLowEndDevice={isLowEndDevice}
-          />
-        </div>
-
-        {/* Full-screen blur overlay for Archive, Photography and About tabs */}
-        {(activeTab === 'archive' || activeTab === 'photography' || activeTab === 'about') && (
-          <div
-            className={`fixed inset-0 z-5 bg-black/40 pointer-events-none ${isLowEndDevice ? '' : 'backdrop-blur-md bg-black/20'}`}
-            style={{
-              opacity: showContent ? 1 : 0,
-              transition: showContent ? 'opacity 400ms ease-in 100ms' : 'opacity 400ms ease-in',
-              height: '100vh',
-            }}
-          />
-        )}
 
         <div id="main-app-content" className="relative z-10 flex flex-col" style={{ minHeight: '100dvh' }}>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1">
