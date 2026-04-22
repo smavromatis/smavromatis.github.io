@@ -80,13 +80,18 @@
     @apply border-border;
   }
 
-  html {
-    /* Lenis handles smooth scrolling */
+  html,
+  body {
+    min-height: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
     overscroll-behavior: none;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: transparent;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

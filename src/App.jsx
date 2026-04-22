@@ -411,7 +411,7 @@ function App() {
     >
       {/* Background - Fixed at bottom layer */}
       <div
-        className="fixed inset-0 z-0"
+        className="fixed inset-0 z-[-1]"
         style={{ width: '100%', height: '100vh' }}
       >
         <TabAwareAurora
@@ -424,7 +424,7 @@ function App() {
       {/* Full-screen blur overlay */}
       {(activeTab === 'archive' || activeTab === 'photography' || activeTab === 'about') && (
         <div
-          className={`fixed inset-0 z-5 bg-black/40 pointer-events-none ${isLowEndDevice ? '' : 'backdrop-blur-md bg-black/20'}`}
+          className={`fixed inset-0 z-[-1] bg-black/40 pointer-events-none ${isLowEndDevice ? '' : 'backdrop-blur-md bg-black/20'}`}
           style={{
             opacity: showContent ? 1 : 0,
             transition: showContent ? 'opacity 400ms ease-in 100ms' : 'opacity 400ms ease-in',
@@ -442,8 +442,7 @@ function App() {
           }
         }}
       >
-
-        <div id="main-app-content" className="relative z-10 flex flex-col" style={{ minHeight: '100dvh' }}>
+        <div id="main-app-content" className="relative z-10 flex flex-col" style={{ minHeight: '100%' }}>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1">
             {/* Navigation */}
             <NavigationMenu
