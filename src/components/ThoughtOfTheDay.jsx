@@ -43,12 +43,16 @@ export default function ThoughtOfTheDay({ allThoughts, isMobile, showContent }) 
 
     return (
         <div
-            className={`fixed ${isMobile ? 'bottom-20' : 'bottom-4 sm:bottom-8'} left-1/2 -translate-x-1/2 z-10 group pointer-events-auto`}
+            className={`fixed ${isMobile ? 'bottom-4' : 'bottom-4 sm:bottom-8'} left-1/2 -translate-x-1/2 z-10 group pointer-events-auto`}
             style={{
+                // On mobile, just clear the home bar
+                bottom: isMobile
+                    ? 'calc(env(safe-area-inset-bottom, 0px) + 16px)'
+                    : undefined,
                 opacity: showContent ? 1 : 0,
                 transition: 'opacity 400ms ease-in-out',
                 perspective: '1000px',
-                maxWidth: isMobile ? 'calc(100vw - 32px)' : 'auto'
+                maxWidth: isMobile ? 'calc(100vw - 32px)' : 'auto',
             }}
             onMouseEnter={handleMouseEnterThought}
             onMouseLeave={handleMouseLeaveThought}

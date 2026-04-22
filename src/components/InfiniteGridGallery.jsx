@@ -3,7 +3,7 @@ import { useGesture } from '@use-gesture/react'
 
 export default function InfiniteGridGallery({ images = [], onInteraction }) {
     const containerRef = useRef(null)
-    const [activeImage, setActiveImage] = useState(null)
+    const [activeIndex, setActiveIndex] = useState(null)
     const [dimensions, setDimensions] = useState({ w: 0, h: 0 })
 
     const offset = useRef({ x: 0, y: 0 })
@@ -76,6 +76,9 @@ export default function InfiniteGridGallery({ images = [], onInteraction }) {
     const bind = useGesture(
         {
             onDrag: (state) => {
+                // Prevent background grid movement if lightbox is open
+                if (activeIndex !== null) return
+
                 const { delta, velocity: vel, direction, dragging: isDragging } = state
                 if (onInteraction) onInteraction()
 
@@ -111,6 +114,7 @@ export default function InfiniteGridGallery({ images = [], onInteraction }) {
                 setRenderTick(t => t + 1)
             },
             onDragStart: () => {
+                if (activeIndex !== null) return
                 dragging.current = true
                 velocity.current.x = 0
                 velocity.current.y = 0
@@ -127,6 +131,83 @@ export default function InfiniteGridGallery({ images = [], onInteraction }) {
             drag: { filterTaps: true, rubberband: false }
         }
     )
+
+    // Lightbox State
+    const [dragX, setDragX] = useState(0)
+    const [isDragging, setIsDragging] = useState(false)
+    const [dotsTop, setDotsTop] = useState(0)
+    const lastIndexRef = useRef(0)
+
+    if (activeIndex !== null) {
+        lastIndexRef.current = activeIndex;
+    }
+
+    const displayIndex = activeIndex !== null ? activeIndex : lastIndexRef.current;
+
+    // Dynamically calculate the bottom position of the active image
+    useEffect(() => {
+        if (activeIndex === null) return;
+        
+        const imgEl = document.getElementById(`lightbox-img-${activeIndex}`);
+        
+        const updateDotsPosition = () => {
+            if (imgEl) {
+                const rect = imgEl.getBoundingClientRect();
+                // If rect.bottom is 0 (image not loaded yet), default to center of screen
+                if (rect.bottom > 0) {
+                    setDotsTop(rect.bottom + 20); // 20px below the image
+                } else {
+                    setDotsTop(window.innerHeight * 0.85);
+                }
+            }
+        };
+
+        updateDotsPosition();
+        
+        if (imgEl) {
+            imgEl.addEventListener('load', updateDotsPosition);
+        }
+        window.addEventListener('resize', updateDotsPosition);
+
+        // Small delay to ensure layout is settled after transition
+        const timer = setTimeout(updateDotsPosition, 50);
+
+        return () => {
+            if (imgEl) imgEl.removeEventListener('load', updateDotsPosition);
+            window.removeEventListener('resize', updateDotsPosition);
+            clearTimeout(timer);
+        };
+    }, [activeIndex, dimensions]);
+
+    // Lightbox Swipe Gesture (Physical Track)
+    const bindLightbox = useGesture(
+        {
+            onDrag: ({ down, movement: [mx], velocity: [vx], direction: [dx], event }) => {
+                if (event) event.stopPropagation()
+                setIsDragging(down)
+                if (down) {
+                    setDragX(mx)
+                } else {
+                    setDragX(0)
+                    if (Math.abs(mx) > 50 || Math.abs(vx) > 0.5) {
+                        if (dx > 0 && activeIndex > 0) {
+                            setActiveIndex(activeIndex - 1)
+                        } else if (dx < 0 && activeIndex < images.length - 1) {
+                            setActiveIndex(activeIndex + 1)
+                        }
+                    }
+                }
+            }
+        },
+        { drag: { filterTaps: true, axis: 'x', rubberband: true } }
+    )
+
+    const prevActiveIndex = useRef(null)
+    const justOpened = activeIndex !== null && prevActiveIndex.current === null
+    
+    useEffect(() => {
+        prevActiveIndex.current = activeIndex;
+    })
 
     const renderCells = () => {
         if (dimensions.w === 0 || dimensions.h === 0 || !images || images.length === 0) return null
@@ -168,7 +249,7 @@ export default function InfiniteGridGallery({ images = [], onInteraction }) {
                         }}
                         onClick={(e) => {
                             e.stopPropagation()
-                            setActiveImage(photo)
+                            setActiveIndex(imgIndex)
                         }}
                     >
                         <div className="absolute inset-0 bg-black/10 group-active:bg-black/0 transition-colors z-10 pointer-events-none" />
@@ -190,7 +271,10 @@ export default function InfiniteGridGallery({ images = [], onInteraction }) {
 
     if (isLowEndDevice) {
         return (
-            <div className="w-full h-full overflow-y-auto p-4 pb-32 overscroll-contain">
+            <div 
+                className="w-full h-full overflow-y-auto p-4 pb-32 overscroll-contain"
+                style={{ paddingTop: typeof window !== 'undefined' && window.innerWidth < 768 ? 'var(--mob-back-clearance, 72px)' : '16px' }}
+            >
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 auto-rows-[160px] sm:auto-rows-[220px] max-w-[1400px] mx-auto">
                     {images.map((img, i) => {
                         const src = img.src || img;
@@ -220,6 +304,8 @@ export default function InfiniteGridGallery({ images = [], onInteraction }) {
         );
     }
 
+    const isLightboxOpen = activeIndex !== null;
+
     return (
         <div
             {...bind()}
@@ -235,36 +321,86 @@ export default function InfiniteGridGallery({ images = [], onInteraction }) {
 
             {/* Lightbox Overlay */}
             <div
-                className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl transition-all duration-300 ${activeImage ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-                onClick={() => setActiveImage(null)}
+                className={`fixed inset-0 z-[100] transition-all duration-400 ${isLightboxOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                style={{ 
+                    background: 'rgba(0,0,0,0.5)',
+                    backdropFilter: isLightboxOpen ? 'blur(20px)' : 'blur(0px)',
+                    WebkitBackdropFilter: isLightboxOpen ? 'blur(20px)' : 'blur(0px)',
+                    touchAction: 'none' 
+                }}
             >
-                {activeImage && (
-                    <div className="relative flex items-center justify-center w-full h-full">
-                        <img
-                            src={activeImage.srcOriginal || activeImage.src || activeImage}
-                            alt="Expanded view"
-                            className="w-auto h-auto max-w-[95vw] max-h-[85vh] object-contain rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/10 protect-photo"
-                            onContextMenu={(e) => e.preventDefault()}
-                            onClick={e => e.stopPropagation()}
-                            style={{
-                                animation: 'zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                {/* Physical Swipe Track */}
+                <div 
+                    {...bindLightbox()}
+                    className="absolute inset-0 flex items-center h-full w-full outline-none"
+                    style={{
+                        // 90vw per slide + 5vw padding on the left to perfectly center the active slide
+                        paddingLeft: '5vw',
+                        transform: `translate3d(calc(${-displayIndex * 90}vw + ${dragX}px), 0, 0)`,
+                        transition: (isDragging || justOpened) ? 'none' : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                        willChange: 'transform',
+                        touchAction: 'none'
+                    }}
+                >
+                    {images.map((photo, i) => (
+                        <div 
+                            key={i} 
+                            className="flex-shrink-0 flex flex-col items-center justify-center h-full relative"
+                            style={{ width: '90vw' }}
+                            onClick={() => {
+                                // If they click an edge preview, go to it
+                                if (i !== activeIndex) {
+                                    setActiveIndex(i);
+                                } else {
+                                    // Click the active slide to close it!
+                                    setActiveIndex(null);
+                                }
                             }}
-                        />
-                        <button
-                            className="absolute top-6 right-6 p-3 rounded-full bg-white/5 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all border border-white/10"
-                            onClick={() => setActiveImage(null)}
                         >
-                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                            <img
+                                id={`lightbox-img-${i}`}
+                                src={photo.srcOriginal || photo.src || photo}
+                                alt="Expanded view"
+                                className={`w-auto h-auto max-w-[85vw] max-h-[75vh] object-contain rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 protect-photo transition-transform duration-500 ${i === displayIndex ? 'scale-100' : 'scale-95 opacity-50'}`}
+                                onContextMenu={(e) => e.preventDefault()}
+                                draggable={false}
+                                style={{
+                                    animation: isLightboxOpen ? 'zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' : 'none'
+                                }}
+                            />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Persistent Mobile Swipe Hints (Dots) positioned dynamically below the active image */}
+                <div 
+                    className="absolute left-0 right-0 flex justify-center pointer-events-none"
+                    style={{
+                        top: dotsTop ? `${dotsTop}px` : '85vh',
+                        transition: 'top 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                        willChange: 'top'
+                    }}
+                >
+                    <div className="flex gap-1.5 opacity-60">
+                        {images.slice(0, Math.min(images.length, 12)).map((_, i) => (
+                            <div 
+                                key={i} 
+                                className={`h-1.5 rounded-full transition-all duration-300 ${i === (displayIndex % 12) ? 'w-4 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'w-1.5 bg-white/40'}`} 
+                            />
+                        ))}
                     </div>
-                )}
+                </div>
+
+                {/* Close Overlay Trigger (clicks outside the images) */}
+                <div 
+                    className="absolute inset-0 z-[-1]" 
+                    onClick={() => setActiveIndex(null)}
+                />
             </div>
             <style>{`
         @keyframes zoomIn {
-          from { opacity: 0; transform: scale(0.92) translateY(10px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
+          from { opacity: 0; transform: scale(0.92); }
+          to { opacity: 1; transform: scale(1); }
         }
       `}</style>
         </div>

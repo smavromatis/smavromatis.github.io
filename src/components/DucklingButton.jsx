@@ -305,7 +305,7 @@ const DucklingInstance = ({ startRight, startBottom, type = 'duck', isFadingOut,
     );
 };
 
-export default function DucklingButton({ isMobile, activeTab }) {
+export default function DucklingButton({ isMobile, activeTab, spawnRef }) {
     const [isHovered, setIsHovered] = useState(false);
     const [ducklings, setDucklings] = useState([]);
     const [ducklingIdCounter, setDucklingIdCounter] = useState(0);
@@ -393,14 +393,19 @@ export default function DucklingButton({ isMobile, activeTab }) {
             newEntities.push({
                 id: currentId++,
                 type: isChinchilla ? 'chinchilla' : 'duck',
-                startRight: (isMobile ? 100 : 124) + (Math.random() * 40 - 20),
-                startBottom: (isMobile ? 96 : 24) + (Math.random() * 40 - 20)
+                startRight: (isMobile ? 60 : 124) + (Math.random() * 40 - 20),
+                startBottom: (isMobile ? 60 : 24) + (Math.random() * 40 - 20)
             });
         }
 
         setDucklingIdCounter(currentId - 1);
         setDucklings(prev => [...prev, ...newEntities]);
     };
+
+    // Expose spawnDuckling and hasOpenedEggs to parent via ref (for MobileHUDMenu)
+    if (spawnRef) {
+        spawnRef.current = { spawnDuckling, hasOpenedEggs };
+    }
 
     return (
         <>
@@ -519,9 +524,11 @@ export default function DucklingButton({ isMobile, activeTab }) {
                 )}
             </div>
 
+            {/* Button trigger — hidden on mobile (MobileHUDMenu calls spawnDuckling via spawnRef) */}
+            {!isMobile && (
             <div
-                className={`fixed ${isMobile ? 'bottom-24' : 'bottom-4 sm:bottom-6'} z-50 duckling-keep flex flex-col items-center`}
-                style={{ right: isMobile ? '100px' : '124px' }}
+                className="fixed bottom-4 sm:bottom-6 z-50 duckling-keep flex flex-col items-center"
+                style={{ right: '136px' }}
             >
                 {/* Floating Combo Counter */}
                 <div
@@ -595,6 +602,7 @@ export default function DucklingButton({ isMobile, activeTab }) {
                     </div>
                 </button>
             </div>
+            )} {/* end !isMobile button */}
 
             {ducklings.map(duck => (
                 <DucklingInstance

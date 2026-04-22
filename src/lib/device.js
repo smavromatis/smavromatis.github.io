@@ -19,7 +19,7 @@ export const checkIsLowEndDevice = () => {
                 isLowEnd = softwareRenderers.some(str => renderer.includes(str));
             }
         }
-    } catch (e) {
+    } catch {
         isLowEnd = true;
     }
 

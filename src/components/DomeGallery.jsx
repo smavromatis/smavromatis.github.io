@@ -621,7 +621,7 @@ export default function DomeGallery({
       scrim.removeEventListener('click', close);
       window.removeEventListener('keydown', onKey);
     };
-  }, [enlargeTransitionMs, openedImageBorderRadius, grayscale, segments]);
+  }, [enlargeTransitionMs, openedImageBorderRadius, grayscale, effectiveSegments]);
 
   const openItemFromElement = el => {
     if (!el || cancelTapRef.current) return;

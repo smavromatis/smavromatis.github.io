@@ -10,6 +10,7 @@ import ThoughtOfTheDay from '@/components/ThoughtOfTheDay'
 import EasterEggButton from '@/components/EasterEggButton'
 import DucklingButton from '@/components/DucklingButton'
 import ColorPaletteSelector from '@/components/ColorPaletteSelector'
+import MobileHUDMenu from '@/components/MobileHUDMenu'
 
 // Helper function to handle lazy loading with retry/reload mechanism for chunk errors
 const lazyWithRetry = (componentImport) => {
@@ -48,6 +49,7 @@ import { tabs, colorPalettes } from '@/lib/constants'
 import { checkIsLowEndDevice } from '@/lib/device'
 import TabAwareAurora from '@/components/TabAwareAurora'
 import NavigationMenu from '@/components/NavigationMenu'
+import MobileBackButton from '@/components/MobileBackButton'
 
 const LoadingState = () => (
   <div className="flex-1 flex items-center justify-center min-h-[60vh]">
@@ -158,6 +160,7 @@ function App() {
   const [isHackerDashboardClosing, setIsHackerDashboardClosing] = useState(false)
   const [showCloseButton, setShowCloseButton] = useState(false)
   const textContainerRef = useRef(null)
+  const ducklingSpawnRef = useRef(null) // bridge: DucklingButton exposes spawnDuckling via this ref
 
   const selectPalette = (index) => {
     setSelectedPaletteIndex(index)
@@ -223,10 +226,6 @@ function App() {
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
-      // On mobile, always expand nav
-      if (window.innerWidth < 768) {
-        setIsNavExpanded(true)
-      }
     }
 
     checkMobile()
@@ -370,11 +369,12 @@ function App() {
       if (currentPathTab === 'photography') {
         setShowDragHint(true);
       }
-      // Delay content appearance until nav animation completes (600ms)
+      // Delay content appearance until nav animation completes (600ms on desktop, near-instant on mobile)
+      const transitionDelay = window.innerWidth < 768 ? 50 : 600;
       setTimeout(() => {
         setShowContent(true);
         // For home tab, position will be calculated by the effect and set ready after 1000ms
-      }, 600);
+      }, transitionDelay);
     }
   }, [location.pathname, activeTab, getTabFromPath]);
 
@@ -414,7 +414,10 @@ function App() {
         }}
       >
         {/* Background - Dynamic parameters based on active tab */}
-        <div className="fixed inset-0 z-0">
+        <div
+          className="fixed inset-0 z-0"
+          style={{ width: '100%', height: '100dvh' }}
+        >
           <TabAwareAurora
             activeTab={activeTab}
             colorStops={colorPalettes[selectedPaletteIndex].colors}
@@ -429,11 +432,12 @@ function App() {
             style={{
               opacity: showContent ? 1 : 0,
               transition: showContent ? 'opacity 400ms ease-in 100ms' : 'opacity 400ms ease-in',
+              height: '100dvh',
             }}
           />
         )}
 
-        <div id="main-app-content" className="relative z-10 flex min-h-screen flex-col">
+        <div id="main-app-content" className="relative z-10 flex flex-col" style={{ minHeight: '100dvh' }}>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1">
             {/* Navigation */}
             <NavigationMenu
@@ -531,11 +535,20 @@ function App() {
                   showContent={showContent}
                   textContainerRef={textContainerRef}
                   homeTextVerticalOffset={homeTextVerticalOffset}
+                  onTabChange={handleTabChange}
+                  // HUD Props for Mobile
+                  colorPalettes={colorPalettes}
+                  selectedPaletteIndex={selectedPaletteIndex}
+                  selectPalette={selectPalette}
+                  onEasterEggClick={() => setIsHackerDashboardOpen(true)}
+                  ducklingSpawnRef={ducklingSpawnRef}
+                  isCreditsOpen={isCreditsOpen}
+                  setIsCreditsOpen={setIsCreditsOpen}
                 />
               </TabsContent>
 
-              {/* Thought of the Day - Bottom of Home Screen */}
-              {activeTab === 'home' && showContent && (
+              {/* Thought of the Day - desktop only; too cluttered on mobile */}
+              {activeTab === 'home' && showContent && !isMobile && (
                 <ThoughtOfTheDay
                   allThoughts={allThoughts}
                   isMobile={isMobile}
@@ -560,43 +573,50 @@ function App() {
             </main>
           </Tabs>
 
+          {/* Mobile back button — shown when inside a non-home tab */}
+          {isMobile && activeTab !== 'home' && (
+            <MobileBackButton onBack={() => handleTabChange('home')} />
+          )}
+
           {/* Drag Hint */}
           {activeTab === 'photography' && showContent && showDragHint && !isMobile && !isLowEndDevice && (
             <DragHint />
           )}
 
-          {/* Color Palette Selector */}
-          <ColorPaletteSelector
-            colorPalettes={colorPalettes}
-            selectedPaletteIndex={selectedPaletteIndex}
-            isMobile={isMobile}
-            activeTab={activeTab}
-            isPalettePickerOpen={isPalettePickerOpen}
-            setIsPalettePickerOpen={setIsPalettePickerOpen}
-            selectPalette={selectPalette}
-            hoveredPaletteName={hoveredPaletteName}
-            setHoveredPaletteName={setHoveredPaletteName}
-            hoveredPalettePosition={hoveredPalettePosition}
-            setHoveredPalettePosition={setHoveredPalettePosition}
-          />
+          {!isMobile && (
+            <>
+              <ColorPaletteSelector
+                colorPalettes={colorPalettes}
+                selectedPaletteIndex={selectedPaletteIndex}
+                isMobile={false}
+                activeTab={activeTab}
+                isPalettePickerOpen={isPalettePickerOpen}
+                setIsPalettePickerOpen={setIsPalettePickerOpen}
+                selectPalette={selectPalette}
+                hoveredPaletteName={hoveredPaletteName}
+                setHoveredPaletteName={setHoveredPaletteName}
+                hoveredPalettePosition={hoveredPalettePosition}
+                setHoveredPalettePosition={setHoveredPalettePosition}
+              />
+              <EasterEggButton
+                isMobile={false}
+                isHovered={isEasterEggHovered}
+                setIsHovered={setIsEasterEggHovered}
+                onClick={() => setIsHackerDashboardOpen(true)}
+              />
+            </>
+          )}
 
-          {/* Easter Egg Button */}
-          <EasterEggButton
-            isMobile={isMobile}
-            isHovered={isEasterEggHovered}
-            setIsHovered={setIsEasterEggHovered}
-            onClick={() => setIsHackerDashboardOpen(true)}
-          />
+          <Suspense fallback={null}>
+            <CreditsModal
+              isOpen={isCreditsOpen}
+              isMobile={isMobile}
+              onClose={() => setIsCreditsOpen(!isCreditsOpen)}
+            />
+          </Suspense>
 
-          {/* Duckling Spawner Button */}
-          <DucklingButton isMobile={isMobile} activeTab={activeTab} />
-
-          {/* Credits Button */}
-          <CreditsModal
-            isOpen={isCreditsOpen}
-            isMobile={isMobile}
-            onClose={() => setIsCreditsOpen(!isCreditsOpen)}
-          />
+          {/* Duckling spawner — always rendered (manages its own fixed ducks) */}
+          <DucklingButton isMobile={isMobile} activeTab={activeTab} spawnRef={ducklingSpawnRef} />
 
           {/* Hacker Dashboard Overlay */}
           <Suspense fallback={null}>

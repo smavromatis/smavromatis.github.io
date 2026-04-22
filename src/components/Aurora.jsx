@@ -85,20 +85,41 @@ struct ColorStop {
 
 void main() {
   vec2 uv = gl_FragCoord.xy / uResolution;
-  
+  // Calculate aspect ratio
+  float aspect = uResolution.x / uResolution.y;
+
+  // On narrow mobile screens, a pure horizontal gradient (uv.x) squishes all 3 colors
+  // into a tiny horizontal width. To keep the colors wide and diverse, we tilt the 
+  // gradient diagonally on mobile. This utilizes the tall vertical space of the phone 
+  // to spread the colors out smoothly, preventing them from feeling 'stuck'.
+  float colorUv = uv.x;
+  if (aspect < 1.0) {
+      // Blend x and y to create a diagonal spread from top-left to bottom-right
+      colorUv = (uv.x + uv.y) * 0.5;
+  }
+
   ColorStop colors[3];
   colors[0] = ColorStop(uColorStops[0], 0.0);
   colors[1] = ColorStop(uColorStops[1], 0.5);
   colors[2] = ColorStop(uColorStops[2], 1.0);
   
   vec3 rampColor;
-  COLOR_RAMP(colors, uv.x, rampColor);
+  COLOR_RAMP(colors, colorUv, rampColor);
+
+  // On a portrait screen (mobile), the UV coordinates compress the same number of 
+  // noise peaks into a much narrower horizontal space, causing the lights to look 
+  // thin and 'squished'. By scaling the frequency based on aspect ratio, we ensure 
+  // the lights remain beautifully wide and sweeping on all screen sizes.
   
-  // Calculate a proportional x frequency to prevent spikiness on narrow screens
-  float aspect = uResolution.x / uResolution.y;
-  float frequencyX = 2.0 * min(1.0, aspect);
+  // On narrow screens (aspect < 1), we sample a smaller slice of the noise horizontally
+  float frequencyScale = min(aspect, 1.0); 
   
-  float height = snoise(vec2(uv.x * frequencyX + uTime * 0.1, uTime * 0.25)) * 0.5 * uAmplitude;
+  // Slightly reduce amplitude on narrow screens to prevent the wide waves from clipping top/bottom
+  float mobileAmplitudeScale = clamp(aspect, 0.6, 1.0);
+
+  // Apply frequencyScale to the X coordinate to stretch the waves horizontally on mobile
+  float noiseX = uv.x * 2.0 * frequencyScale + uTime * 0.1;
+  float height = snoise(vec2(noiseX, uTime * 0.25)) * 0.5 * uAmplitude * mobileAmplitudeScale;
   height = exp(height);
   height = (uv.y * 2.0 - height + 0.2 + uVerticalOffset);
   float intensity = 0.6 * height;
@@ -161,6 +182,18 @@ export default function Aurora(props) {
         }
       }, 150);
     }
+
+    // Immediate resize (no debounce) to fix initial paint on mobile
+    function resizeImmediate() {
+      if (!ctn) return;
+      const width = ctn.offsetWidth;
+      const height = ctn.offsetHeight;
+      renderer.setSize(width, height);
+      if (program) {
+        program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height];
+      }
+    }
+
     window.addEventListener('resize', resize);
 
     const geometry = new Triangle(gl);
@@ -180,7 +213,7 @@ export default function Aurora(props) {
         uTime: { value: 0 },
         uAmplitude: { value: amplitude },
         uColorStops: { value: colorStopsArray },
-        uResolution: { value: [ctn.offsetWidth * (propsRef.current.isStatic ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)), ctn.offsetHeight * (propsRef.current.isStatic ? 1 : Math.min(window.devicePixelRatio || 1, 1.5))] },
+        uResolution: { value: [gl.canvas.width, gl.canvas.height] },
         uBlend: { value: blend },
         uVerticalOffset: { value: verticalOffset }
       }
@@ -220,12 +253,15 @@ export default function Aurora(props) {
       const initWidth = ctn.offsetWidth;
       const initHeight = ctn.offsetHeight;
       renderer.setSize(initWidth, initHeight);
+      // Use physical pixel dimensions (gl.canvas already has DPR applied by setSize)
       if (program) program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height];
     }
 
     // Kick off animation loop, or run just exactly one static frame
     if (!propsRef.current.isStatic) {
       animateId = requestAnimationFrame(update);
+      // Force a resize check on the next frame to fix mobile initial canvas size
+      requestAnimationFrame(resizeImmediate);
     } else {
       update(0);
       // Run it one more time slightly after to ensure textures/shaders flushed to canvas

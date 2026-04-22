@@ -8,8 +8,14 @@ export default function EasterEggButton({
 }) {
     return (
         <div
-            className={`fixed ${isMobile ? 'bottom-24' : 'bottom-4 sm:bottom-6'} z-50`}
-            style={{ right: isMobile ? '52px' : '72px' }}
+            className="fixed z-50"
+            style={{
+                // Nav is at TOP on mobile — bottom is free, just clear the home bar
+                bottom: isMobile
+                    ? 'calc(env(safe-area-inset-bottom, 0px) + 16px)'
+                    : '1.5rem',
+                right: isMobile ? '60px' : '80px',
+            }}
         >
             <button
                 onMouseEnter={() => !isMobile && setIsHovered(true)}
@@ -24,7 +30,7 @@ export default function EasterEggButton({
                     minHeight: '44px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
                 }}
             >
                 <div
@@ -35,7 +41,7 @@ export default function EasterEggButton({
                             : 'rgba(255, 255, 255, 0.05)',
                         boxShadow: isHovered
                             ? '0 0 20px rgba(22, 163, 74, 0.5), 0 0 40px rgba(22, 163, 74, 0.3), inset 0 0 10px rgba(22, 163, 74, 0.2)'
-                            : 'none'
+                            : 'none',
                     }}
                 >
                     <svg
@@ -52,10 +58,9 @@ export default function EasterEggButton({
                             stroke: isHovered ? '#16A34A' : 'white',
                             filter: isHovered
                                 ? 'drop-shadow(0 0 6px rgba(22, 163, 74, 0.8))'
-                                : 'none'
+                                : 'none',
                         }}
                     >
-                        {/* Terminal/Command Line Icon */}
                         <polyline points="4 17 10 11 4 5" />
                         <line x1="12" y1="19" x2="20" y2="19" />
                     </svg>

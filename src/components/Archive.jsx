@@ -84,48 +84,12 @@ const getMarkdownClasses = (isMobile) => cn(
 )
 
 const Archive = ({ isWideView, onWideViewChange, archiveConfig }) => {
-  // Safety check: if archive data is missing entirely, show loading or empty
-  if (!archive || !archive.categories) {
-    return <LoadingState />;
-  }
-  
-  const { categories, items } = archive
+  const { categories = [], items = [] } = archive || {}
   const scrollContainerRef = useRef(null)
   const lenisRef = useRef(null)
 
   const location = useLocation()
   const navigate = useNavigate()
-
-  // Safety check for maintenance mode
-  if (archiveConfig?.isDrafting) {
-    return (
-      <div className="w-full flex items-center justify-center min-h-[60vh] px-6">
-        <div className="text-center max-w-lg">
-          <div className="mb-8 relative inline-block">
-            <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full" />
-            <svg
-              className="w-24 h-24 text-white/20 mx-auto relative animate-pulse"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </div>
-          <h2 className="text-3xl font-bold text-white mb-4 tracking-tight drop-shadow-sm">
-            {archiveConfig.draftingTitle}
-          </h2>
-          <p className="text-white/60 text-lg leading-relaxed">
-            {archiveConfig.draftingMessage}
-          </p>
-          <div className="mt-10 flex flex-col items-center gap-2">
-            <div className="h-1 w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full" />
-            <p className="text-white/30 text-xs uppercase tracking-[0.2em] font-medium">Under Maintenance</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   const getItemIdFromPath = useCallback(() => {
     const parts = location.pathname.split('/')
@@ -282,6 +246,42 @@ const Archive = ({ isWideView, onWideViewChange, archiveConfig }) => {
       }, 150)
     }
   }, [selectedItemId])
+
+  // Safety check: if archive data is missing entirely, show loading or empty
+  if (!archive || !archive.categories) {
+    return <LoadingState />;
+  }
+
+  // Safety check for maintenance mode
+  if (archiveConfig?.isDrafting) {
+    return (
+      <div className="w-full flex items-center justify-center min-h-[60vh] px-6">
+        <div className="text-center max-w-lg">
+          <div className="mb-8 relative inline-block">
+            <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full" />
+            <svg
+              className="w-24 h-24 text-white/20 mx-auto relative animate-pulse"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-bold text-white mb-4 tracking-tight drop-shadow-sm">
+            {archiveConfig.draftingTitle}
+          </h2>
+          <p className="text-white/60 text-lg leading-relaxed">
+            {archiveConfig.draftingMessage}
+          </p>
+          <div className="mt-10 flex flex-col items-center gap-2">
+            <div className="h-1 w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full" />
+            <p className="text-white/30 text-xs uppercase tracking-[0.2em] font-medium">Under Maintenance</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // Safety check for archive data
   if (!categories || categories.length === 0) {
@@ -532,7 +532,13 @@ const Archive = ({ isWideView, onWideViewChange, archiveConfig }) => {
       {isMobile && isSidebarOpen && (
         <div
           className="fixed left-1/2 -translate-x-1/2 z-[70]"
-          style={{ top: '92px', width: 'min(720px, calc(100vw - 24px))', height: 'calc(100vh - 112px)' }}
+          style={{
+            // Sidebar panel: sits just below the back button
+            top: 'calc(var(--mob-back-clearance, 72px) + 8px)',
+            width: 'min(720px, calc(100vw - 24px))',
+            // Fills remaining height leaving bottom safe area
+            height: 'calc(100dvh - var(--mob-back-clearance, 72px) - 16px - env(safe-area-inset-bottom, 0px))',
+          }}
           data-lenis-prevent
         >
           <GlassSurface
@@ -635,12 +641,13 @@ const Archive = ({ isWideView, onWideViewChange, archiveConfig }) => {
         <div
           className={`fixed z-[65] left-1/2 -translate-x-1/2 transition-all duration-300 ${isSidebarOpen ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 scale-100'}`}
           style={{
-            top: '72px',
+            // Browse button: just below the back button
+            top: 'calc(var(--mob-back-clearance, 72px) - 4px)',
             position: 'fixed',
             zIndex: 65,
             pointerEvents: isSidebarOpen ? 'none' : 'auto',
             maxWidth: 'calc(100vw - 24px)',
-            width: 'auto'
+            width: 'auto',
           }}
         >
           <GlassSurface
@@ -695,7 +702,13 @@ const Archive = ({ isWideView, onWideViewChange, archiveConfig }) => {
         <div
           ref={scrollContainerRef}
           className={`overflow-y-auto ${isMobile ? 'pr-4 pl-4' : 'pr-6'} scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent`}
-          style={{ height: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 120px)' }}
+          style={{
+            // Mobile: from below back button to above home bar
+            marginTop: isMobile ? 'var(--mob-back-clearance, 72px)' : '0',
+            height: isMobile
+              ? 'calc(100dvh - var(--mob-back-clearance, 72px) - env(safe-area-inset-bottom, 0px) - 8px)'
+              : 'calc(100vh - 120px)',
+          }}
           data-lenis-prevent
         >
           {selectedItem ? (

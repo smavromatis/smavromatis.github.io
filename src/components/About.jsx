@@ -25,13 +25,20 @@ const About = () => {
   }, []);
 
   return (
-    <div className="w-full min-h-[calc(100vh-96px)] flex items-center justify-center px-4 sm:px-6 py-6 sm:py-8 md:py-0">
-      <div className="max-w-5xl mx-auto w-full">
+    <div
+      className="w-full min-h-[calc(100vh-96px)] flex items-center justify-center px-4 sm:px-6 py-6 sm:py-8 md:py-0"
+      style={{
+        // On mobile: push content below the ← back button
+        paddingTop: 'var(--mob-back-clearance, 72px)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+      }}
+    >
+      <div className="max-w-5xl mx-auto w-full pb-16 sm:pb-20 lg:pb-24">
         {/* Two-column layout: Photo left, Content right */}
-        <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 sm:gap-12 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 sm:gap-12 lg:gap-16 items-center">
           {/* Left Column - Profile Picture */}
           <div className="flex justify-center lg:justify-start">
-            <div className="relative w-48 h-48 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-md border border-white/10 shadow-2xl">
+            <div className="relative w-40 h-40 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-md border border-white/10 shadow-2xl">
               {aboutData.imagePath ? (
                 <img
                   src={aboutData.imagePath}
@@ -41,7 +48,7 @@ const About = () => {
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <svg
-                    className="w-40 h-40 text-white/40"
+                    className="w-20 h-20 sm:w-40 sm:h-40 text-white/40"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

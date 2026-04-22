@@ -13,22 +13,28 @@ export default function ColorPaletteSelector({
     hoveredPalettePosition,
     setHoveredPalettePosition
 }) {
+    // Nav is at the TOP on mobile, so the bottom is free.
+    // Use a simple safe-area-aware bottom offset.
+    const mobileBottom = 'calc(env(safe-area-inset-bottom, 0px) + 16px)';
+
     return (
         <div
-            className={`fixed ${isMobile ? 'bottom-24' : 'bottom-4 sm:bottom-6'} ${isMobile ? 'left-2' : 'left-4 sm:left-6'} z-50`}
+            className={`fixed ${isMobile ? '' : 'bottom-4 sm:bottom-6 left-4 sm:left-6'} z-50`}
             style={{
+                bottom: isMobile ? mobileBottom : undefined,
+                left: isMobile ? '12px' : undefined,
                 opacity: activeTab === 'home' ? 1 : 0,
                 pointerEvents: activeTab === 'home' ? 'auto' : 'none',
-                transition: 'opacity 400ms ease-in-out'
+                transition: 'opacity 400ms ease-in-out',
             }}
         >
-            <div className="relative" style={{ width: isMobile ? '280px' : '400px', height: isMobile ? '280px' : '400px' }}>
+            <div className="relative" style={{ width: isMobile ? '240px' : '400px', height: isMobile ? '240px' : '400px' }}>
                 {colorPalettes.map((palette, index) => {
                     const horizontalPosition = 20;
                     const verticalPosition = -16;
                     const buttonCenterX = horizontalPosition;
                     const buttonCenterY = verticalPosition;
-                    const spacing = isMobile ? 45 : 60;
+                    const spacing = isMobile ? 40 : 60;
                     const positions = [
                         { x: buttonCenterX + spacing * 1, y: buttonCenterY },
                         { x: buttonCenterX + spacing * 2, y: buttonCenterY },
@@ -64,7 +70,7 @@ export default function ColorPaletteSelector({
                                 opacity: isPalettePickerOpen ? 1 : 0,
                                 transition: `all ${350 + index * 35}ms cubic-bezier(0.34, 1.56, 0.64, 1)`,
                                 pointerEvents: isPalettePickerOpen ? 'auto' : 'none',
-                                zIndex: selectedPaletteIndex === index ? 10 : 1
+                                zIndex: selectedPaletteIndex === index ? 10 : 1,
                             }}
                         >
                             <div className="relative transition-all duration-300 hover:scale-110">
@@ -80,7 +86,7 @@ export default function ColorPaletteSelector({
                                     className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
                                     style={{
                                         background: palette.colors[1],
-                                        boxShadow: `0 0 10px ${palette.colors[1]}80, 0 2px 6px rgba(0,0,0,0.3)`
+                                        boxShadow: `0 0 10px ${palette.colors[1]}80, 0 2px 6px rgba(0,0,0,0.3)`,
                                     }}
                                 >
                                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -95,7 +101,7 @@ export default function ColorPaletteSelector({
                 {isPalettePickerOpen && (
                     <div
                         className="absolute transition-all duration-300"
-                        style={{ left: '62px', bottom: '12px', zIndex: 15, opacity: isPalettePickerOpen ? 1 : 0, pointerEvents: 'none' }}
+                        style={{ left: '62px', bottom: '12px', zIndex: 15, opacity: 1, pointerEvents: 'none' }}
                     >
                         <span className="text-white text-sm font-light" style={{ textShadow: '0 0 6px rgba(255, 255, 255, 0.5)' }}>›</span>
                     </div>
@@ -114,14 +120,14 @@ export default function ColorPaletteSelector({
                                 bottom: '0',
                                 transform: `translate(${hoveredPalettePosition.x + horizontalOffset}px, ${hoveredPalettePosition.y + verticalOffset}px)`,
                                 zIndex: 25,
-                                pointerEvents: 'none'
+                                pointerEvents: 'none',
                             }}
                         >
                             <span
                                 className="text-white text-xs font-medium whitespace-nowrap block"
                                 style={{
                                     textShadow: '0 0 8px rgba(255, 255, 255, 0.6), 0 0 16px rgba(255, 255, 255, 0.3)',
-                                    transform: `translateX(${centerAdjust}%)`
+                                    transform: `translateX(${centerAdjust}%)`,
                                 }}
                             >
                                 {hoveredPaletteName}
@@ -145,7 +151,7 @@ export default function ColorPaletteSelector({
                                     boxShadow: isPalettePickerOpen
                                         ? `0 0 16px ${color}80, 0 4px 12px rgba(0,0,0,0.3)`
                                         : `0 0 10px ${color}60, 0 2px 8px rgba(0,0,0,0.3)`,
-                                    transform: isPalettePickerOpen ? 'scale(1.2)' : 'scale(1)'
+                                    transform: isPalettePickerOpen ? 'scale(1.2)' : 'scale(1)',
                                 }}
                             />
                         ))}
